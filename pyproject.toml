@@ -6,8 +6,9 @@ authors = ["MrP01 <peter@waldert.at>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.10"
-
+python = "^3.10, <3.12"
+caldav = "^1.2.1"
+pyside6 = "^6.5.1"
 
 [tool.black]
 line-length = 120
@@ -16,6 +17,7 @@ line-length = 120
 line-length = 120
 select = ["I001"]
 exclude = [".git", "**/__pycache__"]
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
