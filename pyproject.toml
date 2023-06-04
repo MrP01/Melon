@@ -8,7 +8,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.10, <3.12"
 caldav = "^1.2.1"
-pyside6 = "^6.5.1"
+pyside6 = "<6.5"
 
 [tool.black]
 line-length = 120
