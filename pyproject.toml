@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "melon"
+version = "0.1.0"
+description = ""
+authors = ["MrP01 <peter@waldert.at>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+
+[tool.black]
+line-length = 120
+
+[tool.ruff]
+line-length = 120
+select = ["I001"]
+exclude = [".git", "**/__pycache__"]
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.nitpick]
+style = ["github://MrP01/lint-me-now/nitpick-base-style.toml", "github://MrP01/lint-me-now/nitpick-python-style.toml"]
