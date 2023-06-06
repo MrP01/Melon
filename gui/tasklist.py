@@ -4,7 +4,19 @@ from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 
 
+class TaskItemEditorFactory(QItemEditorFactory):
+    def createEditor(self, userType: int, parent: QWidget) -> QWidget:
+        edit = QLineEdit(parent)
+        edit.setAlignment(Qt.AlignmentFlag.AlignTop)
+        edit.setContentsMargins(14, 2, 2, 4)
+        return edit
+
+
 class TaskItemDelegate(QItemDelegate):
+    def __init__(self, parent: QObject | None = None):
+        super().__init__(parent)
+        self.setItemEditorFactory(TaskItemEditorFactory())
+
     def paint(self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex | QPersistentModelIndex):
         todo = index.data(Qt.ItemDataRole.UserRole)
         rect: QRect = option.rect
@@ -38,6 +50,7 @@ class TaskListView(QListWidget):
     def __init__(self):
         super().__init__()
         self.setItemDelegate(TaskItemDelegate())
+        self.setDragEnabled(True)
 
     def populate(self, tasks: list[caldav.Todo]):
         self.clear()
@@ -49,6 +62,7 @@ class TaskListView(QListWidget):
                 item = QListWidgetItem(task.vobject_instance.contents["vtodo"][0].contents["summary"][0].value)
                 todo = task.vobject_instance.contents["vtodo"][0]
             item.setData(Qt.ItemDataRole.UserRole, todo)
+            item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsDragEnabled)
             self.addItem(item)
 
     def setCalendarFilter(self, calendarName):

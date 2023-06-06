@@ -29,7 +29,8 @@ class MainWindow(QWidget):
         calendarList = QListWidget()
         calendarList.setItemDelegate(LargerListViewDelegate())
         for calendar in self.todolist.calendars:
-            calendarList.addItem(calendar.name)
+            calendarList.addItem(QListWidgetItem(QIcon.fromTheme("view-list-symbolic"), calendar.name))
+            # calendarList.addItem(calendar.name)
         calendarList.sortItems()
         policy = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding)
         policy.setHorizontalStretch(2)
