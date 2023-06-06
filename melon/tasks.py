@@ -15,6 +15,7 @@ class TodoList:
             username=CONFIG["client"]["username"],
             password=CONFIG["client"]["password"],
         )
+        self.calendars = []
         self.tasks = []
 
     def connect(self):
@@ -51,3 +52,4 @@ class TodoList:
                         # print("Skipped", filename, todo.vobject_instance)
                         continue
                     self.tasks.append(todo)
+                self.calendars.append(caldav.Calendar(self.client, name=path.stem))
