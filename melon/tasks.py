@@ -1,5 +1,5 @@
-import glob
 import logging
+import pathlib
 
 import caldav
 import icalendar
@@ -39,14 +39,15 @@ class TodoList:
                 cal.serialize(f)
 
     def load(self):
-        for filename in glob.glob(str(CONFIG_FOLDER / "*.dav")):
+        for filename in CONFIG_FOLDER.glob("*.dav"):
+            path = pathlib.Path(filename)
             with open(filename) as f:
                 cal = icalendar.Calendar.from_ical(f.read())
                 for task in cal.subcomponents:
                     todo = caldav.Todo(self.client)
                     todo.icalendar_instance = task
-                    # print(todo.vobject_instance.contents)
+                    todo.vobject_instance.contents["calendar"] = path.stem
                     if "summary" not in todo.vobject_instance.contents:
-                        print("Skipped", filename, todo.vobject_instance)
+                        # print("Skipped", filename, todo.vobject_instance)
                         continue
                     self.tasks.append(todo)

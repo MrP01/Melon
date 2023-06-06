@@ -5,10 +5,29 @@ from PySide6.QtWidgets import *
 
 
 class TaskItemDelegate(QItemDelegate):
-    def drawDisplay(self, painter: QPainter, option: QStyleOptionViewItem, rect: QRect, text: str) -> None:
-        return super().drawDisplay(painter, option, rect, text)
+    def paint(self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex | QPersistentModelIndex):
+        todo = index.data(Qt.ItemDataRole.UserRole)
+        rect: QRect = option.rect
 
-    def sizeHint(self, option: QStyleOptionViewItem, index: QModelIndex | QPersistentModelIndex) -> QSize:
+        originalPen = painter.pen()
+        path = QPainterPath()
+        path.addRoundedRect(rect.marginsRemoved(QMargins(2, 2, 2, 2)), 6, 6)
+        painter.setPen(QPen(QColor(0, 255, 0, 150)))
+        if option.state & QStyle.StateFlag.State_Selected:
+            painter.fillPath(path, QColor(200, 200, 200, 150))
+        else:
+            painter.fillPath(path, QColor(200, 200, 200, 50))
+
+        path = QPainterPath()
+        path.addRoundedRect(QRect(rect.x() + 4, rect.y() + 22, len(todo.contents["calendar"]) * 8 + 12, 20), 10, 10)
+        painter.drawPath(path)
+
+        painter.setPen(originalPen)
+        color = Qt.GlobalColor.black
+        QApplication.style().drawItemText(painter, rect.translated(8, 3), 0, color, True, index.data())
+        QApplication.style().drawItemText(painter, rect.translated(12, 23), 0, color, True, todo.contents["calendar"])
+
+    def sizeHint(self, option: QStyleOptionViewItem, index: QModelIndex) -> QSize:
         return QSize(100, 50)
 
 
@@ -21,6 +40,10 @@ class TaskListView(QListWidget):
         self.clear()
         for task in tasks:
             try:
-                self.addItem(task.vobject_instance.contents["summary"][0].value)
+                item = QListWidgetItem(task.vobject_instance.contents["summary"][0].value)
+                todo = task.vobject_instance
             except KeyError:  # when the task is wrapped in a VCalendar object
-                self.addItem(task.vobject_instance.contents["vtodo"][0].contents["summary"][0].value)
+                item = QListWidgetItem(task.vobject_instance.contents["vtodo"][0].contents["summary"][0].value)
+                todo = task.vobject_instance.contents["vtodo"][0]
+            item.setData(Qt.ItemDataRole.UserRole, todo)
+            self.addItem(item)
