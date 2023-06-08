@@ -30,7 +30,6 @@ class MainWindow(QWidget):
         calendarList.setItemDelegate(LargerListViewDelegate())
         for calendar in self.todolist.calendars:
             calendarList.addItem(QListWidgetItem(QIcon.fromTheme("view-list-symbolic"), calendar.name))
-            # calendarList.addItem(calendar.name)
         calendarList.sortItems()
         policy = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding)
         policy.setHorizontalStretch(2)
@@ -41,8 +40,6 @@ class MainWindow(QWidget):
         layout.addWidget(calendarList, 1, 1)
         layout.addWidget(self.tasklist, 1, 2)
         self.setLayout(layout)
-
-        self.resize(960, 1080)
 
     def keyPressEvent(self, event: QKeyEvent):
         if event.modifiers() == Qt.KeyboardModifier.ControlModifier and event.key() == Qt.Key.Key_W:

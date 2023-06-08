@@ -14,4 +14,7 @@ if __name__ == "__main__":
     window = MainWindow()
     window.buildUI()
     window.show()
+    screenSize = app.primaryScreen().availableSize()
+    window.resize(screenSize.width() // 2, screenSize.height())
+    window.move(screenSize.width() // 2, 0)
     sys.exit(app.exec())

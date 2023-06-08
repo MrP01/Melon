@@ -1,7 +1,8 @@
-import caldav
 from PySide6.QtCore import *
 from PySide6.QtGui import *
 from PySide6.QtWidgets import *
+
+from melon.tasks import Todo
 
 
 class TaskItemEditorFactory(QItemEditorFactory):
@@ -33,10 +34,10 @@ class TaskItemDelegate(QItemDelegate):
             painter.fillPath(path, QColor(0, 170, 255, 200))
 
         path = QPainterPath()
-        path.addRoundedRect(QRect(rect.x() + 14, rect.y() + 25, len(todo.contents["calendar"]) * 8 + 12, 16), 10, 10)
+        path.addRoundedRect(QRect(rect.x() + 14, rect.y() + 25, len(todo.calendarName) * 8 + 12, 16), 10, 10)
         painter.drawPath(path)
         painter.setFont(QFont("Monospace", 9))
-        painter.drawText(rect.translated(22, 26), todo.contents["calendar"])
+        painter.drawText(rect.translated(22, 26), todo.calendarName)
 
         painter.setPen(originalPen)
         painter.setFont(originalFont)
@@ -51,25 +52,24 @@ class TaskListView(QListWidget):
         super().__init__()
         self.setItemDelegate(TaskItemDelegate())
         self.setDragEnabled(True)
+        self.itemChanged.connect(self.onItemChange)
 
-    def populate(self, tasks: list[caldav.Todo]):
+    def populate(self, tasks: list[Todo]):
         self.clear()
         for task in tasks:
-            try:
-                item = QListWidgetItem(task.vobject_instance.contents["summary"][0].value)
-                todo = task.vobject_instance
-            except KeyError:  # when the task is wrapped in a VCalendar object
-                item = QListWidgetItem(task.vobject_instance.contents["vtodo"][0].contents["summary"][0].value)
-                todo = task.vobject_instance.contents["vtodo"][0]
-            item.setData(Qt.ItemDataRole.UserRole, todo)
+            item = QListWidgetItem(task.summary)
+            item.setData(Qt.ItemDataRole.UserRole, task)
             item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsDragEnabled)
             self.addItem(item)
 
     def setCalendarFilter(self, calendarName):
         for i in range(self.count()):
             item = self.item(i)
-            item.setHidden(item.data(Qt.ItemDataRole.UserRole).contents["calendar"] != calendarName)
+            item.setHidden(item.data(Qt.ItemDataRole.UserRole).calendarName != calendarName)
 
     def clearCalendarFilter(self):
         for i in range(self.count()):
             self.item(i).setHidden(False)
+
+    def onItemChange(self, item: QListWidgetItem):
+        print("Item Changed", item.text(), item.data(Qt.ItemDataRole.UserRole))
