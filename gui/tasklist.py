@@ -72,4 +72,8 @@ class TaskListView(QListWidget):
             self.item(i).setHidden(False)
 
     def onItemChange(self, item: QListWidgetItem):
-        print("Item Changed", item.text(), item.data(Qt.ItemDataRole.UserRole))
+        todo: Todo = item.data(Qt.ItemDataRole.UserRole)
+        todo.summary = item.text()
+        print("Item Changed", item.text(), todo)
+        todo.save()
+        print("... saved!")

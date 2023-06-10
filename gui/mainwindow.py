@@ -17,10 +17,10 @@ class MainWindow(QWidget):
         self.todolist = TodoList()
         self.setWindowTitle("Melon UI")
 
-        # self.todolist.connect()
-        # self.todolist.fetch()
+        self.todolist.connect()
+        self.todolist.fetch()
         # self.todolist.store()
-        self.todolist.load()
+        # self.todolist.load()
 
     def buildUI(self):
         self.tasklist = TaskListView()

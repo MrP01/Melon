@@ -18,17 +18,15 @@ class Calendar(caldav.Calendar):
             calendar.name,
             calendar.id,
             calendar.props,
-            calendar.extra_init_options,
+            **calendar.extra_init_options,
         )
 
 
 class Todo(caldav.Todo):
-    def __init__(self, todo: caldav.Todo):
+    def __init__(self, todo: caldav.Todo, calendarName: str):
         """A copy constructor"""
         super().__init__(todo.client, todo.url, todo.data, todo.parent, todo.id, todo.props)
-        # if "summary" not in self.vobject_instance.contents:
-        #     self.vobject_instance = self.vobject_instance.contents["vtodo"][0]
-        self.calendarName = None
+        self.calendarName = calendarName
 
     def save(
         self,
@@ -41,15 +39,19 @@ class Todo(caldav.Todo):
         print("Saving! :)")
         return super().save(no_overwrite, no_create, obj_type, increase_seqno, if_schedule_tag_match)
 
-    def __str__(self) -> str:
-        return "I am a TODO!"
-
-    def __repr__(self) -> str:
-        return "TODO"
-
     @property
     def summary(self):
-        return self.vobject_instance.contents["summary"][0].value
+        return self.vobject_instance.contents["vtodo"][0].contents["summary"][0].value
+
+    @summary.setter
+    def summary(self, value):
+        self.vobject_instance.contents["vtodo"][0].contents["summary"][0].value = value
+
+    def __str__(self) -> str:
+        return self.summary
+
+    def __repr__(self) -> str:
+        return f"<Melon.Todo: {self.summary}>"
 
 
 class TodoList:
@@ -72,14 +74,14 @@ class TodoList:
     def fetch(self):
         self.tasks = []
         for calendar in self.calendars[:2]:
-            self.tasks.extend([Todo(todo) for todo in calendar.todos()])
+            self.tasks.extend([Todo(todo, calendar.name) for todo in calendar.todos()])
         logging.info(f"Fetched {len(self.tasks)} tasks")
 
     def store(self):
         for calendar in self.calendars:
             cal = vobject.iCalendar()
             for task in calendar.todos():
-                cal.add(task.vobject_instance.contents["vtodo"][0])
+                cal.add(task.vobject_instance)
             with open(CONFIG_FOLDER / f"{calendar.name}.dav", "w") as f:
                 cal.serialize(f)
 
@@ -89,11 +91,10 @@ class TodoList:
             with open(filename) as f:
                 cal = icalendar.Calendar.from_ical(f.read())
                 for task in cal.subcomponents:
-                    todo = Todo(caldav.Todo(self.client))
+                    todo = Todo(caldav.Todo(self.client), path.stem)
                     todo.icalendar_instance = task
-                    todo.calendarName = path.stem
-                    if "summary" not in todo.vobject_instance.contents:
+                    if "vtodo" not in todo.vobject_instance.contents:
                         # print("Skipped", filename, todo.vobject_instance)
                         continue
                     self.tasks.append(todo)
-                self.calendars.append(caldav.Calendar(self.client, name=path.stem))
+                self.calendars.append(Calendar(caldav.Calendar(self.client, name=path.stem)))
