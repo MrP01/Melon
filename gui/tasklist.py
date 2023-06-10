@@ -4,6 +4,8 @@ from PySide6.QtWidgets import *
 
 from melon.tasks import Todo
 
+UserRole = Qt.ItemDataRole.UserRole
+
 
 class TaskItemEditorFactory(QItemEditorFactory):
     def createEditor(self, userType: int, parent: QWidget) -> QWidget:
@@ -19,7 +21,7 @@ class TaskItemDelegate(QItemDelegate):
         self.setItemEditorFactory(TaskItemEditorFactory())
 
     def paint(self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex | QPersistentModelIndex):
-        todo = index.data(Qt.ItemDataRole.UserRole)
+        todo = index.data(UserRole)
         rect: QRect = option.rect
         originalPen = painter.pen()
         originalFont = painter.font()
@@ -58,21 +60,24 @@ class TaskListView(QListWidget):
         self.clear()
         for task in tasks:
             item = QListWidgetItem(task.summary)
-            item.setData(Qt.ItemDataRole.UserRole, task)
+            item.setData(UserRole, task)
             item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsDragEnabled)
             self.addItem(item)
 
     def setCalendarFilter(self, calendarName):
         for i in range(self.count()):
             item = self.item(i)
-            item.setHidden(item.data(Qt.ItemDataRole.UserRole).calendarName != calendarName)
+            if calendarName is not None:
+                item.setHidden(item.data(UserRole).calendarName != calendarName)
+            else:
+                item.setHidden(False)
 
     def clearCalendarFilter(self):
         for i in range(self.count()):
             self.item(i).setHidden(False)
 
     def onItemChange(self, item: QListWidgetItem):
-        todo: Todo = item.data(Qt.ItemDataRole.UserRole)
+        todo: Todo = item.data(UserRole)
         todo.summary = item.text()
         print("Item Changed", item.text(), todo)
         todo.save()
