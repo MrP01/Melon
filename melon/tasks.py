@@ -1,3 +1,4 @@
+import datetime
 import logging
 import pathlib
 
@@ -48,12 +49,24 @@ class Todo(caldav.Todo):
         return super().save(no_overwrite, no_create, obj_type, increase_seqno, if_schedule_tag_match)
 
     @property
-    def summary(self):
-        return self.vobject_instance.contents["vtodo"][0].contents["summary"][0].value
+    def vtodo(self):
+        return self.vobject_instance.contents["vtodo"][0]
+
+    @property
+    def summary(self) -> str:
+        return self.vtodo.contents["summary"][0].value
 
     @summary.setter
-    def summary(self, value):
-        self.vobject_instance.contents["vtodo"][0].contents["summary"][0].value = value
+    def summary(self, value: str):
+        self.vtodo.contents["summary"][0].value = value
+
+    @property
+    def dueDate(self) -> datetime.datetime:
+        if "due" in self.vtodo.contents:
+            due = self.vtodo.contents["due"][0].value
+            if isinstance(due, datetime.date):
+                return datetime.datetime.combine(due, datetime.time())
+            return due
 
     def __str__(self) -> str:
         return self.summary

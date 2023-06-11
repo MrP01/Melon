@@ -22,13 +22,21 @@ class TaskItemDelegate(QItemDelegate):
         self.setItemEditorFactory(TaskItemEditorFactory())
 
     def paint(self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex | QPersistentModelIndex):
-        todo = index.data(UserRole)
+        todo: Todo = index.data(UserRole)
         if todo is None:
             return
 
         rect: QRect = option.rect
-        originalPen = painter.pen()
-        originalFont = painter.font()
+        painter.save()
+        painter.drawText(rect.translated(18, 3), todo.summary)
+
+        painter.setPen(QPen(QColor(150, 150, 150)))
+        if todo.dueDate:
+            painter.drawText(
+                rect.translated(-10, 3),
+                todo.dueDate.strftime("%d.%m.%Y"),
+                Qt.AlignmentFlag.AlignRight,
+            )
 
         path = QPainterPath()
         path.addRoundedRect(rect.marginsRemoved(QMargins(2, 2, 2, 4)), 6, 6)
@@ -45,9 +53,7 @@ class TaskItemDelegate(QItemDelegate):
         painter.setFont(QFont("Monospace", 9))
         painter.drawText(rect.translated(22, 26), todo.calendarName)
 
-        painter.setPen(originalPen)
-        painter.setFont(originalFont)
-        painter.drawText(rect.translated(18, 3), index.data())
+        painter.restore()
 
     def sizeHint(self, option: QStyleOptionViewItem, index: QModelIndex) -> QSize:
         return QSize(100, 50)
@@ -59,9 +65,15 @@ class MyListWidgetItem(QListWidgetItem):
             return False
         elif other.data(Qt.ItemDataRole.EditRole) == "add-task":
             return True
-        if self.data(UserRole).summary == "An exciting new task!":
+        mine: Todo = self.data(UserRole)
+        theirs: Todo = other.data(UserRole)
+        if mine.summary == "An exciting new task!":
             return False
-        return self.data(UserRole).summary < other.data(UserRole).summary
+        if mine.dueDate is None:
+            return False
+        if theirs.dueDate is None:
+            return True
+        return (mine.dueDate, mine.summary) < (theirs.dueDate, theirs.summary)
 
 
 class TaskListView(QListWidget):
