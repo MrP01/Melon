@@ -7,6 +7,14 @@ import vobject
 
 from .config import CONFIG, CONFIG_FOLDER
 
+EMPTY_TODO_DATA = """
+BEGIN:VCALENDAR
+BEGIN:VTODO
+SUMMARY: {summary}
+END:VTODO
+END:VCALENDAR
+"""
+
 
 class Calendar(caldav.Calendar):
     def __init__(self, calendar: caldav.Calendar) -> None:
@@ -36,7 +44,7 @@ class Todo(caldav.Todo):
         increase_seqno: bool = True,
         if_schedule_tag_match: bool = False,
     ):
-        print("Saving! :)")
+        # print("Saving! :)")
         return super().save(no_overwrite, no_create, obj_type, increase_seqno, if_schedule_tag_match)
 
     @property
@@ -55,30 +63,34 @@ class Todo(caldav.Todo):
 
 
 class TodoList:
+    HIDDEN_CALENDARS = ("calendar",)
+
     def __init__(self) -> None:
         self.client = caldav.DAVClient(
             CONFIG["client"]["url"],
             username=CONFIG["client"]["username"],
             password=CONFIG["client"]["password"],
         )
-        self.calendars = []
+        self.calendars = {}
         self.tasks = []
 
     def connect(self):
         self.principal = self.client.principal()
         logging.info("Obtained principal")
 
-        self.calendars = [Calendar(cal) for cal in self.principal.calendars()]
+        all_calendars = self.principal.calendars()
+        self.calendars = {cal.name: Calendar(cal) for cal in all_calendars if cal.name not in self.HIDDEN_CALENDARS}
         logging.info(f"Obtained {len(self.calendars)} calendars")
 
     def fetch(self):
         self.tasks = []
-        for calendar in self.calendars[:2]:
-            self.tasks.extend([Todo(todo, calendar.name) for todo in calendar.todos()])
+        for name, calendar in self.calendars.items():
+            self.tasks.extend([Todo(todo, name) for todo in calendar.todos()])
+            break
         logging.info(f"Fetched {len(self.tasks)} tasks")
 
     def store(self):
-        for calendar in self.calendars:
+        for name, calendar in self.calendars.items():
             cal = vobject.iCalendar()
             for task in calendar.todos():
                 cal.add(task.vobject_instance)
@@ -88,13 +100,16 @@ class TodoList:
     def load(self):
         for filename in CONFIG_FOLDER.glob("*.dav"):
             path = pathlib.Path(filename)
+            calendarName = path.stem
+            if calendarName in self.HIDDEN_CALENDARS:
+                continue
             with open(filename) as f:
                 cal = icalendar.Calendar.from_ical(f.read())
                 for task in cal.subcomponents:
-                    todo = Todo(caldav.Todo(self.client), path.stem)
+                    todo = Todo(caldav.Todo(self.client), calendarName)
                     todo.icalendar_instance = task
                     if "vtodo" not in todo.vobject_instance.contents:
                         # print("Skipped", filename, todo.vobject_instance)
                         continue
                     self.tasks.append(todo)
-                self.calendars.append(Calendar(caldav.Calendar(self.client, name=path.stem)))
+                self.calendars[calendarName] = Calendar(caldav.Calendar(self.client, name=calendarName))

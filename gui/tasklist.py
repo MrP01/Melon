@@ -1,8 +1,9 @@
+import caldav
 from PySide6.QtCore import *
 from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 
-from melon.tasks import Todo
+from melon.tasks import Todo, TodoList
 
 UserRole = Qt.ItemDataRole.UserRole
 
@@ -22,6 +23,9 @@ class TaskItemDelegate(QItemDelegate):
 
     def paint(self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex | QPersistentModelIndex):
         todo = index.data(UserRole)
+        if todo is None:
+            return
+
         rect: QRect = option.rect
         originalPen = painter.pen()
         originalFont = painter.font()
@@ -49,36 +53,81 @@ class TaskItemDelegate(QItemDelegate):
         return QSize(100, 50)
 
 
+class MyListWidgetItem(QListWidgetItem):
+    def __lt__(self, other: QListWidgetItem):
+        if self.data(Qt.ItemDataRole.EditRole) == "add-task":
+            return False
+        elif other.data(Qt.ItemDataRole.EditRole) == "add-task":
+            return True
+        if self.data(UserRole).summary == "An exciting new task!":
+            return False
+        return self.data(UserRole).summary < other.data(UserRole).summary
+
+
 class TaskListView(QListWidget):
-    def __init__(self):
+    def __init__(self, todolist: TodoList):
         super().__init__()
+        self.todolist = todolist
         self.setItemDelegate(TaskItemDelegate())
         self.setDragEnabled(True)
         self.itemChanged.connect(self.onItemChange)
+        self._currentCalendarName = None
+
+    def createListItemFromTask(self, task: Todo):
+        item = MyListWidgetItem(task.summary)
+        item.setData(UserRole, task)
+        item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsDragEnabled)
+        return item
 
     def populate(self, tasks: list[Todo]):
         self.clear()
         for task in tasks:
-            item = QListWidgetItem(task.summary)
-            item.setData(UserRole, task)
-            item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsDragEnabled)
-            self.addItem(item)
+            self.addItem(self.createListItemFromTask(task))
+        self.addAddButton()
+        self.sortItems()
+
+    def addAddButton(self):
+        self._addTaskItem = MyListWidgetItem("Add Task")
+        self._addTaskItem.setData(Qt.ItemDataRole.EditRole, "add-task")
+        self.addItem(self._addTaskItem)
+        addButton = QPushButton(QIcon.fromTheme("list-add"), "Add Task")
+        addButton.clicked.connect(self.onAddTask)
+        self.setItemWidget(self._addTaskItem, addButton)
 
     def setCalendarFilter(self, calendarName):
         for i in range(self.count()):
             item = self.item(i)
-            if calendarName is not None:
+            if calendarName is not None and item.data(UserRole) is not None:
                 item.setHidden(item.data(UserRole).calendarName != calendarName)
             else:
                 item.setHidden(False)
+        self._currentCalendarName = calendarName
 
     def clearCalendarFilter(self):
         for i in range(self.count()):
             self.item(i).setHidden(False)
+        self._currentCalendarName = None
 
     def onItemChange(self, item: QListWidgetItem):
         todo: Todo = item.data(UserRole)
         todo.summary = item.text()
-        print("Item Changed", item.text(), todo)
         todo.save()
         print("... saved!")
+
+    def onAddTask(self):
+        if self._currentCalendarName is None:
+            print("Please select a calendar first!")
+            return
+        calendar = self.todolist.calendars[self._currentCalendarName]
+        todo = Todo(
+            caldav.Todo(
+                calendar.client,
+                data=calendar._use_or_create_ics("SUMMARY:An exciting new task!", objtype="VTODO"),
+                parent=calendar,
+            ),
+            calendarName=calendar.name,
+        )
+        newItem = self.createListItemFromTask(todo)
+        self.addItem(newItem)
+        self.sortItems()
+        self.editItem(newItem)

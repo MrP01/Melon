@@ -18,11 +18,11 @@ class MainWindow(QWidget):
         # self.todolist.load()
 
     def buildUI(self):
-        self.tasklist = TaskListView()
+        self.tasklist = TaskListView(self.todolist)
         self.tasklist.populate(self.todolist.tasks)
 
         calendarList = CalendarList()
-        calendarList.populate(self.todolist.calendars)
+        calendarList.populate(self.todolist.calendars.values())
         calendarList.currentItemChanged.connect(self.calendarListClicked)
 
         layout = QGridLayout(self)
@@ -33,7 +33,7 @@ class MainWindow(QWidget):
     def calendarListClicked(self, item):
         userData = item.data(Qt.ItemDataRole.UserRole)
         if userData and userData["is-special"] and userData["specialty"] == "all":
-            self.tasklist.setCalendarFilter(None)
+            self.tasklist.clearCalendarFilter()
         else:
             self.tasklist.setCalendarFilter(item.text())
 
