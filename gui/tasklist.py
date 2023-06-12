@@ -102,6 +102,8 @@ class TaskListView(QListWidget):
         item = MyListWidgetItem(task.summary)
         item.setData(UserRole, task)
         item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsDragEnabled)
+        if task.isComplete():
+            item.setHidden(True)
         return item
 
     def populate(self, tasks: list[Todo]):

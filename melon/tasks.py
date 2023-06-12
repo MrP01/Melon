@@ -1,10 +1,8 @@
 import datetime
-import json
 import logging
 import pickle
 
 import caldav
-import vobject
 
 from .config import CONFIG, CONFIG_FOLDER
 
@@ -29,7 +27,7 @@ class Calendar(caldav.Calendar):
             calendar.props,
             **calendar.extra_init_options,
         )
-        self.syncable = None
+        self.syncable: caldav.SynchronizableCalendarObjectCollection | None = None
 
 
 class Todo(caldav.Todo):
@@ -37,17 +35,6 @@ class Todo(caldav.Todo):
         """A copy constructor"""
         super().__init__(todo.client, todo.url, todo.data, todo.parent, todo.id, todo.props)
         self.calendarName = calendarName
-
-    def save(
-        self,
-        no_overwrite: bool = False,
-        no_create: bool = False,
-        obj_type: str | None = None,
-        increase_seqno: bool = True,
-        if_schedule_tag_match: bool = False,
-    ):
-        # print("Saving! :)")
-        return super().save(no_overwrite, no_create, obj_type, increase_seqno, if_schedule_tag_match)
 
     @property
     def vtodo(self):
@@ -68,6 +55,9 @@ class Todo(caldav.Todo):
             if isinstance(due, datetime.date):
                 return datetime.datetime.combine(due, datetime.time())
             return due
+
+    def isComplete(self) -> bool:
+        return True
 
     def __str__(self) -> str:
         return self.summary
@@ -93,83 +83,47 @@ class TodoList:
         self.principal = self.client.principal()
         logging.info("Obtained principal")
 
-        all_calendars = self.principal.calendars()
+        all_calendars = self.principal.calendars()[:4]
         self.calendars = {cal.name: Calendar(cal) for cal in all_calendars if cal.name not in self.HIDDEN_CALENDARS}
         logging.info(f"Obtained {len(self.calendars)} calendars")
-
-    # def fetch(self):
-    #     self.tasks = []
-    #     for name, calendar in self.calendars.items():
-    #         self.tasks.extend([Todo(todo, name) for todo in calendar.todos()])
-    #         break
-    #     logging.info(f"Fetched {len(self.tasks)} tasks")
 
     def initial_fetch(self):
         if not self.calendars:
             self.connect()
-        for name, calendar in self.calendars.items():
-            cal = vobject.iCalendar()
+        for calendar in self.calendars.values():
             calendar.syncable = calendar.objects(load_objects=True)
-            for task in calendar.syncable:
-                cal.add(task.vobject_instance)
-                self.tasks.append(Todo(task, calendar.name))
-            with open(CONFIG_FOLDER / f"{calendar.name}.dav", "w") as f:
-                cal.serialize(f)
+            for object in calendar.syncable:
+                if "vtodo" in object.vobject_instance.contents:
+                    self.tasks.append(Todo(object, calendar.name))
             logging.info(f"Fetched {len(calendar.syncable)} full objects!")
-            break
 
     def store(self):
-        syncTokenStorage = {}
-        for name, calendar in self.calendars.items():
-            if calendar.syncable is not None:
-                syncTokenStorage[name] = calendar.syncable.sync_token
-            cal = vobject.iCalendar()
-            for task in calendar.syncable:
-                cal.add(task.vobject_instance)
-            with open(CONFIG_FOLDER / f"{calendar.name}.dav", "w") as f:
-                cal.serialize(f)
-            logging.info(f"Stored {len(calendar.syncable)} objects.")
-            break
-        with open(CONFIG_FOLDER / "synctokens.json", "w") as f:
-            json.dump(syncTokenStorage, f)
+        with open(CONFIG_FOLDER / "calendars.pickle", "wb") as f:
+            pickle.dump(self.calendars, f)
 
-    def load_and_sync(self):
+    def load(self):
         if self.principal is None:
             self.principal = self.client.principal()
-        with open(CONFIG_FOLDER / "calendars.pickle") as f:
+        with open(CONFIG_FOLDER / "calendars.pickle", "rb") as f:
             self.calendars: dict[str, Calendar] = pickle.load(f)
         logging.info(f"Loaded {len(self.calendars)} calendars from disk.")
-        # for filename in CONFIG_FOLDER.glob("*.dav"):
-        #     path = pathlib.Path(filename)
-        #     calendarName = path.stem
-        #     if calendarName in self.HIDDEN_CALENDARS:
-        #         continue
-        #     with open(filename) as f:
-        #         cal = icalendar.Calendar.from_ical(f.read())
-        #         objects = []
-        #         for task in cal.subcomponents:
-        #             todo = Todo(caldav.Todo(self.client), calendarName)
-        #             todo.icalendar_instance = task
-        #             if "vtodo" not in todo.vobject_instance.contents:
-        #                 # print("Skipped", filename, todo.vobject_instance)
-        #                 continue
-        #             objects.append(todo)
-        #             self.tasks.append(todo)
+        for calendar in self.calendars.values():
+            for object in calendar.syncable:
+                if "vtodo" in object.vobject_instance.contents:
+                    self.tasks.append(Todo(object, calendar.name))
 
-        for name, calendar in self.calendars.items():
-            # calendar = Calendar(self.principal.calendar(name=calendarName))
-            # calendar.syncable = calendar.objects_by_sync_token(sync_token=syncTokenStorage[calendarName])
+    def sync(self):
+        for calendar in self.calendars.values():
             updated, deleted = calendar.syncable.sync()
+            calendar.syncable.objects = list(calendar.syncable.objects)
             logging.info(
-                f"Synced, resulting in {len(updated)} updated and {len(deleted)} deleted entries. "
+                f"Synced {calendar.name}, resulting in {len(updated)} updated and {len(deleted)} deleted entries. "
                 f"In total, we have {len(calendar.syncable)} objects."
             )
-            break
 
     def startup(self):
-        # self.connect()
-        tokensfile = CONFIG_FOLDER / "synctokens.json"
+        tokensfile = CONFIG_FOLDER / "calendars.pickle"
         if not tokensfile.exists():
             self.initial_fetch()
         else:
-            self.load_and_sync()
+            self.load()

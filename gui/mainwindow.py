@@ -12,6 +12,7 @@ class MainWindow(QWidget):
         self.todolist = TodoList()
         self.setWindowTitle("Melon UI")
         self.todolist.startup()
+        QTimer.singleShot(200, self.todolist.sync)
 
     def buildUI(self):
         self.tasklist = TaskListView(self.todolist)
