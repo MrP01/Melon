@@ -128,15 +128,18 @@ class TodoList:
         for calendar in self.calendars.values():
             self._load_syncable_tasks(calendar)
 
-    def sync(self):
+    def syncAll(self):
         for calendar in self.calendars.values():
-            updated, deleted = calendar.syncable.sync()
-            calendar.syncable.objects = list(calendar.syncable.objects)
-            self._load_syncable_tasks(calendar)
-            logging.info(
-                f"Synced {calendar.name}, {len(updated)} updated and {len(deleted)} deleted entries. "
-                f"In total, we have {len(calendar.syncable)} objects."
-            )
+            self.syncCalendar(calendar)
+
+    def syncCalendar(self, calendar):
+        updated, deleted = calendar.syncable.sync()
+        calendar.syncable.objects = list(calendar.syncable.objects)
+        self._load_syncable_tasks(calendar)
+        logging.info(
+            f"Synced {calendar.name}, {len(updated)} updated and {len(deleted)} deleted entries. "
+            f"In total, we have {len(calendar.syncable)} objects."
+        )
 
     def startup(self):
         tokensfile = CONFIG_FOLDER / "calendars.pickle"

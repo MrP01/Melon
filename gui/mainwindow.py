@@ -51,7 +51,7 @@ class MainWindow(QWidget):
         QTimer.singleShot(200, self.sync)
 
     def sync(self):
-        self.todolist.sync()
+        self.todolist.syncAll()
         self.tasklistView.sortItems()
 
     def closeEvent(self, event: QCloseEvent) -> None:

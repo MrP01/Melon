@@ -132,6 +132,8 @@ class TaskListView(QListWidget):
         todo.summary = item.text()
         todo.save()
         print("... saved!")
+        self.todolist.syncCalendar(self.todolist.calendars[todo.calendarName])
+        print("... and synced!")
 
     def onAddTask(self):
         if self._currentCalendarName is None:
