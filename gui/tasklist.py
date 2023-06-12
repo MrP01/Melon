@@ -97,21 +97,13 @@ class TaskListView(QListWidget):
         self.setDragEnabled(True)
         self.itemChanged.connect(self.onItemChange)
         self._currentCalendarName = None
+        self.addAddButton()
 
     def createListItemFromTask(self, task: Todo):
         item = MyListWidgetItem(task.summary)
         item.setData(UserRole, task)
         item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsDragEnabled)
-        if task.isComplete():
-            item.setHidden(True)
         return item
-
-    def populate(self, tasks: list[Todo]):
-        self.clear()
-        for task in tasks:
-            self.addItem(self.createListItemFromTask(task))
-        self.addAddButton()
-        self.sortItems()
 
     def addAddButton(self):
         self._addTaskItem = MyListWidgetItem("Add Task")

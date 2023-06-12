@@ -56,8 +56,22 @@ class Todo(caldav.Todo):
                 return datetime.datetime.combine(due, datetime.time())
             return due
 
+    @property
+    def uid(self) -> str | None:
+        try:
+            return self.vtodo.contents["uid"][0].value
+        except KeyError:
+            return
+
+    def isIncomplete(self) -> bool:
+        return "STATUS:NEEDS-ACTION" in self.data or (
+            not "\nCOMPLETED:" in self.data
+            and not "\nSTATUS:COMPLETED" in self.data
+            and not "\nSTATUS:CANCELLED" in self.data
+        )
+
     def isComplete(self) -> bool:
-        return True
+        return not self.isIncomplete()
 
     def __str__(self) -> str:
         return self.summary
@@ -77,7 +91,6 @@ class TodoList:
         )
         self.principal = None
         self.calendars: dict[str, Calendar] = {}
-        self.tasks = []
 
     def connect(self):
         self.principal = self.client.principal()
@@ -87,19 +100,24 @@ class TodoList:
         self.calendars = {cal.name: Calendar(cal) for cal in all_calendars if cal.name not in self.HIDDEN_CALENDARS}
         logging.info(f"Obtained {len(self.calendars)} calendars")
 
+    def _load_syncable_tasks(self, calendar):
+        for object in calendar.syncable:
+            if "vtodo" in object.vobject_instance.contents:
+                todo = Todo(object, calendar.name)
+                self.addOrUpdateTask(todo)
+
     def initial_fetch(self):
         if not self.calendars:
             self.connect()
         for calendar in self.calendars.values():
             calendar.syncable = calendar.objects(load_objects=True)
-            for object in calendar.syncable:
-                if "vtodo" in object.vobject_instance.contents:
-                    self.tasks.append(Todo(object, calendar.name))
+            self._load_syncable_tasks(calendar)
             logging.info(f"Fetched {len(calendar.syncable)} full objects!")
 
     def store(self):
         with open(CONFIG_FOLDER / "calendars.pickle", "wb") as f:
             pickle.dump(self.calendars, f)
+        logging.info(f"Stored {len(self.calendars)} calendars to disk.")
 
     def load(self):
         if self.principal is None:
@@ -108,16 +126,15 @@ class TodoList:
             self.calendars: dict[str, Calendar] = pickle.load(f)
         logging.info(f"Loaded {len(self.calendars)} calendars from disk.")
         for calendar in self.calendars.values():
-            for object in calendar.syncable:
-                if "vtodo" in object.vobject_instance.contents:
-                    self.tasks.append(Todo(object, calendar.name))
+            self._load_syncable_tasks(calendar)
 
     def sync(self):
         for calendar in self.calendars.values():
             updated, deleted = calendar.syncable.sync()
             calendar.syncable.objects = list(calendar.syncable.objects)
+            self._load_syncable_tasks(calendar)
             logging.info(
-                f"Synced {calendar.name}, resulting in {len(updated)} updated and {len(deleted)} deleted entries. "
+                f"Synced {calendar.name}, {len(updated)} updated and {len(deleted)} deleted entries. "
                 f"In total, we have {len(calendar.syncable)} objects."
             )
 
@@ -127,3 +144,6 @@ class TodoList:
             self.initial_fetch()
         else:
             self.load()
+
+    def addOrUpdateTask(self, todo: Todo):
+        pass

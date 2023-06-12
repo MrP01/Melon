@@ -13,6 +13,7 @@ if __name__ == "__main__":
     app = QApplication()
     window = MainWindow()
     window.buildUI()
+    window.start()
     window.show()
     screenSize = app.primaryScreen().availableSize()
     window.resize(screenSize.width() // 2, screenSize.height())

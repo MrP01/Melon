@@ -1,31 +1,58 @@
 from PySide6.QtWidgets import *
 
-from melon.tasks import TodoList
+from melon.tasks import Todo, TodoList
 
 from .calendarlist import *
 from .tasklist import *
 
 
+class GuiTodoList(TodoList):
+    def __init__(self) -> None:
+        super().__init__()
+        self.tasklistView: TaskListView | None = None
+
+    def addOrUpdateTask(self, todo: Todo):
+        if todo.isComplete():
+            return
+        uid = todo.uid
+        assert uid is not None
+        for i in range(self.tasklistView.count()):
+            data = self.tasklistView.item(i).data(UserRole)
+            if uid == getattr(data, "uid", None):
+                self.tasklistView.blockSignals(True)
+                self.tasklistView.item(i).setText(todo.summary)
+                self.tasklistView.item(i).setData(UserRole, todo)
+                self.tasklistView.blockSignals(False)
+                return
+        self.tasklistView.addItem(self.tasklistView.createListItemFromTask(todo))
+
+
 class MainWindow(QWidget):
     def __init__(self) -> None:
         super().__init__()
-        self.todolist = TodoList()
+        self.todolist = GuiTodoList()
         self.setWindowTitle("Melon UI")
-        self.todolist.startup()
-        QTimer.singleShot(200, self.todolist.sync)
 
     def buildUI(self):
-        self.tasklist = TaskListView(self.todolist)
-        self.tasklist.populate(self.todolist.tasks)
-
-        calendarList = CalendarList()
-        calendarList.populate(self.todolist.calendars.values())
-        calendarList.currentItemChanged.connect(self.calendarListClicked)
+        self.tasklistView = TaskListView(self.todolist)
+        self.todolist.tasklistView = self.tasklistView
+        self.calendarlistView = CalendarListView()
+        self.calendarlistView.currentItemChanged.connect(self.calendarListClicked)
 
         layout = QGridLayout(self)
-        layout.addWidget(calendarList, 1, 1)
-        layout.addWidget(self.tasklist, 1, 2)
+        layout.addWidget(self.calendarlistView, 1, 1)
+        layout.addWidget(self.tasklistView, 1, 2)
         self.setLayout(layout)
+
+    def start(self):
+        self.todolist.startup()
+        self.tasklistView.sortItems()
+        self.calendarlistView.populate(self.todolist.calendars.values())
+        QTimer.singleShot(200, self.sync)
+
+    def sync(self):
+        self.todolist.sync()
+        self.tasklistView.sortItems()
 
     def closeEvent(self, event: QCloseEvent) -> None:
         self.todolist.store()
@@ -34,9 +61,9 @@ class MainWindow(QWidget):
     def calendarListClicked(self, item):
         userData = item.data(Qt.ItemDataRole.UserRole)
         if userData and userData["is-special"] and userData["specialty"] == "all":
-            self.tasklist.clearCalendarFilter()
+            self.tasklistView.clearCalendarFilter()
         else:
-            self.tasklist.setCalendarFilter(item.text())
+            self.tasklistView.setCalendarFilter(item.text())
 
     def keyPressEvent(self, event: QKeyEvent):
         if event.modifiers() == Qt.KeyboardModifier.ControlModifier and event.key() == Qt.Key.Key_W:

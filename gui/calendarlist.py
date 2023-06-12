@@ -10,7 +10,7 @@ class LargerListViewDelegate(QItemDelegate):
         return QSize(100, 27)
 
 
-class CalendarList(QListWidget):
+class CalendarListView(QListWidget):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setItemDelegate(LargerListViewDelegate())
