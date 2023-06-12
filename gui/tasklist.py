@@ -1,3 +1,5 @@
+import datetime
+
 import caldav
 from PySide6.QtCore import *
 from PySide6.QtGui import *
@@ -6,6 +8,7 @@ from PySide6.QtWidgets import *
 from melon.tasks import Todo, TodoList
 
 UserRole = Qt.ItemDataRole.UserRole
+ONE_DAY = datetime.timedelta(days=1)
 
 
 class TaskItemEditorFactory(QItemEditorFactory):
@@ -30,13 +33,20 @@ class TaskItemDelegate(QItemDelegate):
         painter.save()
         painter.drawText(rect.translated(18, 3), todo.summary)
 
-        painter.setPen(QPen(QColor(150, 150, 150)))
-        if todo.dueDate:
-            painter.drawText(
-                rect.translated(-10, 3),
-                todo.dueDate.strftime("%d.%m.%Y"),
-                Qt.AlignmentFlag.AlignRight,
-            )
+        dueDate = todo.dueDate
+        if dueDate:
+            text = dueDate.strftime("%d.%m.%Y")
+            today = datetime.date.today()
+            if dueDate.date() == today:
+                text = "today"
+            elif dueDate.date() == today - ONE_DAY:
+                text = "yesterday"
+            elif dueDate.date() == today + ONE_DAY:
+                text = "tomorrow"
+            painter.setPen(QPen(QColor(255, 100, 100) if dueDate.date() < today else QColor(150, 150, 150)))
+            if dueDate.time() != datetime.time():
+                text += ", " + dueDate.strftime("%H:%M")
+            painter.drawText(rect.translated(-10, 3), text, Qt.AlignmentFlag.AlignRight)
 
         path = QPainterPath()
         path.addRoundedRect(rect.marginsRemoved(QMargins(2, 2, 2, 4)), 6, 6)
