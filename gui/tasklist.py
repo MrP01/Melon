@@ -9,6 +9,7 @@ from melon.tasks import Todo, TodoList
 
 UserRole = Qt.ItemDataRole.UserRole
 ONE_DAY = datetime.timedelta(days=1)
+NEW_TASK_TEXT = "An exciting new task!"
 
 
 class TaskItemEditorFactory(QItemEditorFactory):
@@ -77,11 +78,13 @@ class MyListWidgetItem(QListWidgetItem):
             return True
         mine: Todo = self.data(UserRole)
         theirs: Todo = other.data(UserRole)
-        if mine.summary == "An exciting new task!":
+        if mine.summary == NEW_TASK_TEXT:
             return False
-        if mine.dueDate is None:
+        if theirs.summary == NEW_TASK_TEXT:
+            return True
+        if mine.dueDate is None and theirs.dueDate is not None:
             return False
-        if theirs.dueDate is None:
+        if theirs.dueDate is None and mine.dueDate is not None:
             return True
         return (mine.dueDate, mine.summary) < (theirs.dueDate, theirs.summary)
 
@@ -144,7 +147,7 @@ class TaskListView(QListWidget):
         todo = Todo(
             caldav.Todo(
                 calendar.client,
-                data=calendar._use_or_create_ics("SUMMARY:An exciting new task!", objtype="VTODO"),
+                data=calendar._use_or_create_ics(f"SUMMARY:{NEW_TASK_TEXT}", objtype="VTODO"),
                 parent=calendar,
             ),
             calendarName=calendar.name,
