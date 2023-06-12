@@ -10,6 +10,9 @@ python = "^3.10, <3.12"
 caldav = "^1.2.1"
 pyside6 = "<6.5"
 
+[tool.poetry.group.dev.dependencies]
+ipython = "^8.14.0"
+
 [tool.black]
 line-length = 120
 

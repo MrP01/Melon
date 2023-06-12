@@ -11,11 +11,7 @@ class MainWindow(QWidget):
         super().__init__()
         self.todolist = TodoList()
         self.setWindowTitle("Melon UI")
-
-        self.todolist.load()
-        # self.todolist.connect()
-        # self.todolist.fetch()
-        # self.todolist.store()
+        self.todolist.startup()
 
     def buildUI(self):
         self.tasklist = TaskListView(self.todolist)
@@ -29,6 +25,10 @@ class MainWindow(QWidget):
         layout.addWidget(calendarList, 1, 1)
         layout.addWidget(self.tasklist, 1, 2)
         self.setLayout(layout)
+
+    def closeEvent(self, event: QCloseEvent) -> None:
+        self.todolist.store()
+        return super().closeEvent(event)
 
     def calendarListClicked(self, item):
         userData = item.data(Qt.ItemDataRole.UserRole)

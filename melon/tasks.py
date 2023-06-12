@@ -1,9 +1,9 @@
 import datetime
+import json
 import logging
-import pathlib
+import pickle
 
 import caldav
-import icalendar
 import vobject
 
 from .config import CONFIG, CONFIG_FOLDER
@@ -29,6 +29,7 @@ class Calendar(caldav.Calendar):
             calendar.props,
             **calendar.extra_init_options,
         )
+        self.syncable = None
 
 
 class Todo(caldav.Todo):
@@ -84,7 +85,8 @@ class TodoList:
             username=CONFIG["client"]["username"],
             password=CONFIG["client"]["password"],
         )
-        self.calendars = {}
+        self.principal = None
+        self.calendars: dict[str, Calendar] = {}
         self.tasks = []
 
     def connect(self):
@@ -95,34 +97,79 @@ class TodoList:
         self.calendars = {cal.name: Calendar(cal) for cal in all_calendars if cal.name not in self.HIDDEN_CALENDARS}
         logging.info(f"Obtained {len(self.calendars)} calendars")
 
-    def fetch(self):
-        self.tasks = []
-        for name, calendar in self.calendars.items():
-            self.tasks.extend([Todo(todo, name) for todo in calendar.todos()])
-            break
-        logging.info(f"Fetched {len(self.tasks)} tasks")
+    # def fetch(self):
+    #     self.tasks = []
+    #     for name, calendar in self.calendars.items():
+    #         self.tasks.extend([Todo(todo, name) for todo in calendar.todos()])
+    #         break
+    #     logging.info(f"Fetched {len(self.tasks)} tasks")
 
-    def store(self):
+    def initial_fetch(self):
+        if not self.calendars:
+            self.connect()
         for name, calendar in self.calendars.items():
             cal = vobject.iCalendar()
-            for task in calendar.todos():
+            calendar.syncable = calendar.objects(load_objects=True)
+            for task in calendar.syncable:
+                cal.add(task.vobject_instance)
+                self.tasks.append(Todo(task, calendar.name))
+            with open(CONFIG_FOLDER / f"{calendar.name}.dav", "w") as f:
+                cal.serialize(f)
+            logging.info(f"Fetched {len(calendar.syncable)} full objects!")
+            break
+
+    def store(self):
+        syncTokenStorage = {}
+        for name, calendar in self.calendars.items():
+            if calendar.syncable is not None:
+                syncTokenStorage[name] = calendar.syncable.sync_token
+            cal = vobject.iCalendar()
+            for task in calendar.syncable:
                 cal.add(task.vobject_instance)
             with open(CONFIG_FOLDER / f"{calendar.name}.dav", "w") as f:
                 cal.serialize(f)
+            logging.info(f"Stored {len(calendar.syncable)} objects.")
+            break
+        with open(CONFIG_FOLDER / "synctokens.json", "w") as f:
+            json.dump(syncTokenStorage, f)
 
-    def load(self):
-        for filename in CONFIG_FOLDER.glob("*.dav"):
-            path = pathlib.Path(filename)
-            calendarName = path.stem
-            if calendarName in self.HIDDEN_CALENDARS:
-                continue
-            with open(filename) as f:
-                cal = icalendar.Calendar.from_ical(f.read())
-                for task in cal.subcomponents:
-                    todo = Todo(caldav.Todo(self.client), calendarName)
-                    todo.icalendar_instance = task
-                    if "vtodo" not in todo.vobject_instance.contents:
-                        # print("Skipped", filename, todo.vobject_instance)
-                        continue
-                    self.tasks.append(todo)
-                self.calendars[calendarName] = Calendar(caldav.Calendar(self.client, name=calendarName))
+    def load_and_sync(self):
+        if self.principal is None:
+            self.principal = self.client.principal()
+        with open(CONFIG_FOLDER / "calendars.pickle") as f:
+            self.calendars: dict[str, Calendar] = pickle.load(f)
+        logging.info(f"Loaded {len(self.calendars)} calendars from disk.")
+        # for filename in CONFIG_FOLDER.glob("*.dav"):
+        #     path = pathlib.Path(filename)
+        #     calendarName = path.stem
+        #     if calendarName in self.HIDDEN_CALENDARS:
+        #         continue
+        #     with open(filename) as f:
+        #         cal = icalendar.Calendar.from_ical(f.read())
+        #         objects = []
+        #         for task in cal.subcomponents:
+        #             todo = Todo(caldav.Todo(self.client), calendarName)
+        #             todo.icalendar_instance = task
+        #             if "vtodo" not in todo.vobject_instance.contents:
+        #                 # print("Skipped", filename, todo.vobject_instance)
+        #                 continue
+        #             objects.append(todo)
+        #             self.tasks.append(todo)
+
+        for name, calendar in self.calendars.items():
+            # calendar = Calendar(self.principal.calendar(name=calendarName))
+            # calendar.syncable = calendar.objects_by_sync_token(sync_token=syncTokenStorage[calendarName])
+            updated, deleted = calendar.syncable.sync()
+            logging.info(
+                f"Synced, resulting in {len(updated)} updated and {len(deleted)} deleted entries. "
+                f"In total, we have {len(calendar.syncable)} objects."
+            )
+            break
+
+    def startup(self):
+        # self.connect()
+        tokensfile = CONFIG_FOLDER / "synctokens.json"
+        if not tokensfile.exists():
+            self.initial_fetch()
+        else:
+            self.load_and_sync()
