@@ -81,7 +81,7 @@ class Todo(caldav.Todo):
 
 
 class TodoList:
-    HIDDEN_CALENDARS = ("calendar",)
+    HIDDEN_CALENDARS = ("calendar", "Education.Oxford")
 
     def __init__(self) -> None:
         self.client = caldav.DAVClient(
@@ -96,9 +96,25 @@ class TodoList:
         self.principal = self.client.principal()
         logging.info("Obtained principal")
 
-        all_calendars = self.principal.calendars()[:4]
+        all_calendars = self.principal.calendars()
         self.calendars = {cal.name: Calendar(cal) for cal in all_calendars if cal.name not in self.HIDDEN_CALENDARS}
         logging.info(f"Obtained {len(self.calendars)} calendars")
+
+    def _walk_vobject(self, vobject):
+        if hasattr(vobject, "contents"):
+            for key, value in vobject.contents.items():
+                self._walk_vobject(value[0])
+        else:
+            if isinstance(vobject.value, datetime.datetime):
+                if vobject.value.tzinfo is not None:
+                    # if isinstance(vobject.value.tzinfo, dateutil.tz.tz._tzicalvtz):
+                    vobject.value = vobject.value.replace(tzinfo=None)
+                    # print("fixed")
+
+    def _make_calendars_picklable(self):
+        for calendar in self.calendars.values():
+            for object in calendar.syncable:
+                self._walk_vobject(object.vobject_instance)
 
     def _load_syncable_tasks(self, calendar):
         for object in calendar.syncable:
@@ -115,6 +131,7 @@ class TodoList:
             logging.info(f"Fetched {len(calendar.syncable)} full objects!")
 
     def store(self):
+        self._make_calendars_picklable()
         with open(CONFIG_FOLDER / "calendars.pickle", "wb") as f:
             pickle.dump(self.calendars, f)
         logging.info(f"Stored {len(self.calendars)} calendars to disk.")
