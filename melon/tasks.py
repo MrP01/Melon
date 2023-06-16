@@ -28,28 +28,23 @@ class Calendar(caldav.Calendar):
         ical = vobject.iCalendar()
         for task in self.syncable:
             ical.add(task.vobject_instance)
-            print("Added", task)
         with open(CONFIG_FOLDER / f"{self.name}.dav", "w") as f:
             ical.serialize(f)
 
     @staticmethod
-    def load_from_file(client: caldav.DAVClient, name: str, sync_token: str, url: str):
+    def load_from_file(client: caldav.DAVClient, principal: caldav.Principal, name: str, sync_token: str, url: str):
         cal_url = caldav.lib.url.URL(url)
         with open(CONFIG_FOLDER / f"{name}.dav") as f:
             ical = icalendar.Calendar.from_ical(f.read())
         objects = []
+        cal = Calendar(caldav.Calendar(client, parent=principal.calendar_home_set, name=name, url=url))
         for task in ical.subcomponents:
-            # print(task, task.get("UID"))
-            todo = Todo(caldav.Todo(client), name)
+            todo = Todo(caldav.Todo(client, parent=cal), name)
             todo.icalendar_instance = task
-            todo.url = cal_url.join(str(task.subcomponents[0].get("uid")))
-            print("Set URL", str(task.subcomponents[0].get("uid")), todo.url)
+            todo.url = cal_url.join(str(task.subcomponents[0].get("uid")) + ".ics")
             objects.append(todo)
-        logging.debug("Creating Calendar object")
-        cal = Calendar(caldav.Calendar(client, name=name, url=url))
-        logging.debug("Created Calendar object")
         cal.syncable = caldav.SynchronizableCalendarObjectCollection(cal, objects, sync_token)
-        logging.info(f"Calendar {name}: loaded {len(objects)} objects. OBU: {cal.syncable.objects_by_url()}")
+        logging.info(f"Calendar {name}: loaded {len(objects)} objects.")
         return cal
 
 
@@ -104,7 +99,7 @@ class Todo(caldav.Todo):
 
 
 class TodoList:
-    HIDDEN_CALENDARS = ("calendar", "Education.Oxford")
+    HIDDEN_CALENDARS = ("calendar",)
 
     def __init__(self) -> None:
         self.client = caldav.DAVClient(
@@ -119,7 +114,7 @@ class TodoList:
         self.principal = self.client.principal()
         logging.info("Obtained principal")
 
-        all_calendars = self.principal.calendars()[::-2][:2]
+        all_calendars = self.principal.calendars()
         self.calendars = {cal.name: Calendar(cal) for cal in all_calendars if cal.name not in self.HIDDEN_CALENDARS}
         logging.info(f"Obtained {len(self.calendars)} calendars")
 
@@ -155,7 +150,9 @@ class TodoList:
             data = json.load(f)
         for file in CONFIG_FOLDER.glob("*.dav"):
             name = file.stem  # filename corresponds to the calendar name
-            self.calendars[name] = Calendar.load_from_file(self.client, name, data[name]["token"], data[name]["url"])
+            self.calendars[name] = Calendar.load_from_file(
+                self.client, self.principal, name, data[name]["token"], data[name]["url"]
+            )
         logging.info(f"Loaded {len(self.calendars)} calendars from disk.")
         for calendar in self.calendars.values():
             self._load_syncable_tasks(calendar)

@@ -7,7 +7,7 @@ from PySide6.QtWidgets import *
 
 from gui.mainwindow import *
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 if __name__ == "__main__":
     app = QApplication()
