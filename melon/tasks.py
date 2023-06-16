@@ -1,18 +1,13 @@
 import datetime
+import json
 import logging
-import pickle
 
 import caldav
+import caldav.lib.url
+import icalendar
+import vobject
 
 from .config import CONFIG, CONFIG_FOLDER
-
-EMPTY_TODO_DATA = """
-BEGIN:VCALENDAR
-BEGIN:VTODO
-SUMMARY: {summary}
-END:VTODO
-END:VCALENDAR
-"""
 
 
 class Calendar(caldav.Calendar):
@@ -28,6 +23,34 @@ class Calendar(caldav.Calendar):
             **calendar.extra_init_options,
         )
         self.syncable: caldav.SynchronizableCalendarObjectCollection | None = None
+
+    def store_to_file(self):
+        ical = vobject.iCalendar()
+        for task in self.syncable:
+            ical.add(task.vobject_instance)
+            print("Added", task)
+        with open(CONFIG_FOLDER / f"{self.name}.dav", "w") as f:
+            ical.serialize(f)
+
+    @staticmethod
+    def load_from_file(client: caldav.DAVClient, name: str, sync_token: str, url: str):
+        cal_url = caldav.lib.url.URL(url)
+        with open(CONFIG_FOLDER / f"{name}.dav") as f:
+            ical = icalendar.Calendar.from_ical(f.read())
+        objects = []
+        for task in ical.subcomponents:
+            # print(task, task.get("UID"))
+            todo = Todo(caldav.Todo(client), name)
+            todo.icalendar_instance = task
+            todo.url = cal_url.join(str(task.subcomponents[0].get("uid")))
+            print("Set URL", str(task.subcomponents[0].get("uid")), todo.url)
+            objects.append(todo)
+        logging.debug("Creating Calendar object")
+        cal = Calendar(caldav.Calendar(client, name=name, url=url))
+        logging.debug("Created Calendar object")
+        cal.syncable = caldav.SynchronizableCalendarObjectCollection(cal, objects, sync_token)
+        logging.info(f"Calendar {name}: loaded {len(objects)} objects. OBU: {cal.syncable.objects_by_url()}")
+        return cal
 
 
 class Todo(caldav.Todo):
@@ -96,25 +119,9 @@ class TodoList:
         self.principal = self.client.principal()
         logging.info("Obtained principal")
 
-        all_calendars = self.principal.calendars()
+        all_calendars = self.principal.calendars()[::-2][:2]
         self.calendars = {cal.name: Calendar(cal) for cal in all_calendars if cal.name not in self.HIDDEN_CALENDARS}
         logging.info(f"Obtained {len(self.calendars)} calendars")
-
-    def _walk_vobject(self, vobject):
-        if hasattr(vobject, "contents"):
-            for key, value in vobject.contents.items():
-                self._walk_vobject(value[0])
-        else:
-            if isinstance(vobject.value, datetime.datetime):
-                if vobject.value.tzinfo is not None:
-                    # if isinstance(vobject.value.tzinfo, dateutil.tz.tz._tzicalvtz):
-                    vobject.value = vobject.value.replace(tzinfo=None)
-                    # print("fixed")
-
-    def _make_calendars_picklable(self):
-        for calendar in self.calendars.values():
-            for object in calendar.syncable:
-                self._walk_vobject(object.vobject_instance)
 
     def _load_syncable_tasks(self, calendar):
         for object in calendar.syncable:
@@ -131,16 +138,24 @@ class TodoList:
             logging.info(f"Fetched {len(calendar.syncable)} full objects!")
 
     def store(self):
-        self._make_calendars_picklable()
-        with open(CONFIG_FOLDER / "calendars.pickle", "wb") as f:
-            pickle.dump(self.calendars, f)
+        for calendar in self.calendars.values():
+            calendar.store_to_file()
+        with open(CONFIG_FOLDER / "synctokens.json", "w") as f:
+            json.dump(
+                {cal.name: {"url": str(cal.url), "token": cal.syncable.sync_token} for cal in self.calendars.values()},
+                f,
+            )
         logging.info(f"Stored {len(self.calendars)} calendars to disk.")
 
     def load(self):
         if self.principal is None:
             self.principal = self.client.principal()
-        with open(CONFIG_FOLDER / "calendars.pickle", "rb") as f:
-            self.calendars: dict[str, Calendar] = pickle.load(f)
+            logging.info("Obtained principal")
+        with open(CONFIG_FOLDER / "synctokens.json") as f:
+            data = json.load(f)
+        for file in CONFIG_FOLDER.glob("*.dav"):
+            name = file.stem  # filename corresponds to the calendar name
+            self.calendars[name] = Calendar.load_from_file(self.client, name, data[name]["token"], data[name]["url"])
         logging.info(f"Loaded {len(self.calendars)} calendars from disk.")
         for calendar in self.calendars.values():
             self._load_syncable_tasks(calendar)
@@ -159,7 +174,7 @@ class TodoList:
         )
 
     def startup(self):
-        tokensfile = CONFIG_FOLDER / "calendars.pickle"
+        tokensfile = CONFIG_FOLDER / "synctokens.json"
         if not tokensfile.exists():
             self.initial_fetch()
         else:
