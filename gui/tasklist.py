@@ -118,7 +118,13 @@ class TaskListView(QListWidget):
         widget = QWidget(self)
         completionBtn = CompletionPushButton(parent=widget)
         completionBtn.move(18, 8)
+        completionBtn.clicked.connect(lambda: self.completeTask(item))
         return item, widget
+
+    def completeTask(self, item: QListWidgetItem):
+        task: Todo = item.data(UserRole)
+        task.complete()
+        self.takeItem(self.row(item))
 
     def addAddButton(self):
         self._addTaskItem = MyListWidgetItem("Add Task")

@@ -1,6 +1,7 @@
 import datetime
 import json
 import logging
+from typing import Literal
 
 import caldav
 import caldav.lib.url
@@ -90,6 +91,15 @@ class Todo(caldav.Todo):
 
     def isComplete(self) -> bool:
         return not self.isIncomplete()
+
+    def complete(
+        self,
+        completion_timestamp: datetime.datetime | None = None,
+        handle_rrule: bool = True,
+        rrule_mode: Literal["safe", "this_and_future"] = "safe",
+    ) -> None:
+        super().complete(completion_timestamp, handle_rrule, rrule_mode)
+        print("Task completed.")
 
     def __str__(self) -> str:
         return self.summary
