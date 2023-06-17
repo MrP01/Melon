@@ -24,7 +24,9 @@ class GuiTodoList(TodoList):
                 self.tasklistView.item(i).setData(UserRole, todo)
                 self.tasklistView.blockSignals(False)
                 return
-        self.tasklistView.addItem(self.tasklistView.createListItemFromTask(todo))
+        item, widget = self.tasklistView.createListItemFromTask(todo)
+        self.tasklistView.addItem(item)
+        self.tasklistView.setItemWidget(item, widget)
 
 
 class MainWindow(QWidget):
@@ -48,7 +50,7 @@ class MainWindow(QWidget):
         self.todolist.startup()
         self.tasklistView.sortItems()
         self.calendarlistView.populate(self.todolist.calendars.values())
-        QTimer.singleShot(200, self.sync)
+        # QTimer.singleShot(200, self.sync)
 
     def sync(self):
         self.todolist.syncAll()

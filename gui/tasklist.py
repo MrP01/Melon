@@ -16,8 +16,20 @@ class TaskItemEditorFactory(QItemEditorFactory):
     def createEditor(self, userType: int, parent: QWidget) -> QWidget:
         edit = QLineEdit(parent)
         edit.setAlignment(Qt.AlignmentFlag.AlignTop)
-        edit.setContentsMargins(14, 2, 2, 4)
+        edit.setContentsMargins(18 + 32 + 10, 2, 2, 4)
         return edit
+
+
+class CompletionPushButton(QPushButton):
+    def __init__(self, parent: QObject):
+        super().__init__(parent=parent)
+        self.okIcon = QIcon("gui/assets/complete.png")
+        self.setFixedSize(34, 34)
+
+    def paintEvent(self, event: QPaintEvent) -> None:
+        painter = QPainter(self)
+        delta = 2 if self.isDown() else 0
+        self.okIcon.paint(painter, QRect(delta, delta, 32, 32))
 
 
 class TaskItemDelegate(QItemDelegate):
@@ -32,7 +44,7 @@ class TaskItemDelegate(QItemDelegate):
 
         rect: QRect = option.rect
         painter.save()
-        painter.drawText(rect.translated(18, 3), todo.summary)
+        painter.drawText(rect.translated(18 + 32 + 14, 3), todo.summary)
 
         dueDate = todo.dueDate
         if dueDate:
@@ -56,13 +68,13 @@ class TaskItemDelegate(QItemDelegate):
         if option.state & QStyle.StateFlag.State_Selected:
             path = QPainterPath()
             path.addRoundedRect(QRect(rect.x() + 2, rect.y() + 2, 8, 44), 6, 6)
-            painter.fillPath(path, QColor(0, 170, 255, 200))
+            painter.fillPath(path, QColor(33, 150, 243, 200))
 
         path = QPainterPath()
-        path.addRoundedRect(QRect(rect.x() + 14, rect.y() + 25, len(todo.calendarName) * 8 + 12, 16), 10, 10)
+        path.addRoundedRect(QRect(rect.x() + 32 + 14 + 14, rect.y() + 25, len(todo.calendarName) * 8 + 12, 16), 10, 10)
         painter.drawPath(path)
         painter.setFont(QFont("Monospace", 9))
-        painter.drawText(rect.translated(22, 26), todo.calendarName)
+        painter.drawText(rect.translated(32 + 14 + 22, 26), todo.calendarName)
 
         painter.restore()
 
@@ -103,7 +115,10 @@ class TaskListView(QListWidget):
         item = MyListWidgetItem(task.summary)
         item.setData(UserRole, task)
         item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsDragEnabled)
-        return item
+        widget = QWidget(self)
+        completionBtn = CompletionPushButton(parent=widget)
+        completionBtn.move(18, 8)
+        return item, widget
 
     def addAddButton(self):
         self._addTaskItem = MyListWidgetItem("Add Task")
