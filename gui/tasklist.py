@@ -1,114 +1,11 @@
-import datetime
-
-import caldav
-from PySide6.QtCore import *
-from PySide6.QtGui import *
-from PySide6.QtWidgets import *
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QIcon, QKeyEvent, QMouseEvent
+from PySide6.QtWidgets import QListWidget, QListWidgetItem, QPushButton
 
 from melon.tasks import Todo, TodoList
 
-UserRole = Qt.ItemDataRole.UserRole
-ONE_DAY = datetime.timedelta(days=1)
-NEW_TASK_TEXT = "An exciting new task!"
-
-
-class TaskItemEditorFactory(QItemEditorFactory):
-    def createEditor(self, userType: int, parent: QWidget) -> QWidget:
-        edit = QLineEdit(parent)
-        edit.setAlignment(Qt.AlignmentFlag.AlignTop)
-        edit.setContentsMargins(18 + 32 + 10, 2, 2, 4)
-        return edit
-
-
-class CompletionPushButton(QPushButton):
-    def __init__(self, parent: QObject):
-        super().__init__(parent=parent)
-        self.okIcon = QIcon("gui/assets/complete.png")
-        self.setFixedSize(34, 34)
-
-    def paintEvent(self, event: QPaintEvent) -> None:
-        painter = QPainter(self)
-        delta = 2 if self.isDown() else 0
-        self.okIcon.paint(painter, QRect(delta, delta, 32, 32))
-
-
-class TaskItemDelegate(QStyledItemDelegate):
-    def __init__(self, parent: QObject | None = None):
-        super().__init__(parent)
-        self.setItemEditorFactory(TaskItemEditorFactory())
-
-    def destroyEditor(self, editor: QWidget, index: QModelIndex | QPersistentModelIndex) -> None:
-        super().destroyEditor(editor, index)
-        listWidget: TaskListView = self.parent()
-        if listWidget.itemWidget(listWidget.itemFromIndex(index)) is None:
-            listWidget.attachTaskWidget(listWidget.itemFromIndex(index))
-
-    def paint(self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex | QPersistentModelIndex):
-        todo: Todo = index.data(UserRole)
-        if todo is None:
-            return
-
-        rect: QRect = option.rect
-        painter.save()
-        painter.drawText(rect.translated(18 + 32 + 14, 3), todo.summary)
-
-        dueDate = todo.dueDate
-        if dueDate:
-            text = dueDate.strftime("%d.%m.%Y")
-            today = datetime.date.today()
-            if dueDate.date() == today:
-                text = "today"
-            elif dueDate.date() == today - ONE_DAY:
-                text = "yesterday"
-            elif dueDate.date() == today + ONE_DAY:
-                text = "tomorrow"
-            painter.setPen(QPen(QColor(255, 100, 100) if dueDate.date() < today else QColor(150, 150, 150)))
-            if dueDate.time() != datetime.time():
-                text += ", " + dueDate.strftime("%H:%M")
-            painter.drawText(rect.translated(-10, 3), text, Qt.AlignmentFlag.AlignRight)
-
-        path = QPainterPath()
-        path.addRoundedRect(rect.marginsRemoved(QMargins(2, 2, 2, 4)), 6, 6)
-        painter.setPen(QPen(QColor(0, 255, 0, 150)))
-        painter.fillPath(path, QColor(200, 200, 200, 30))
-        if option.state & QStyle.StateFlag.State_Selected:
-            path = QPainterPath()
-            path.addRoundedRect(QRect(rect.x() + 2, rect.y() + 2, 8, 44), 6, 6)
-            painter.fillPath(path, QColor(33, 150, 243, 200))
-
-        path = QPainterPath()
-        path.addRoundedRect(QRect(rect.x() + 32 + 14 + 14, rect.y() + 25, len(todo.calendarName) * 8 + 12, 16), 10, 10)
-        painter.drawPath(path)
-        painter.setFont(QFont("Monospace", 9))
-        painter.drawText(rect.translated(32 + 14 + 22, 26), todo.calendarName)
-
-        painter.restore()
-
-    def sizeHint(self, option: QStyleOptionViewItem, index: QModelIndex) -> QSize:
-        return QSize(100, 50)
-
-
-class MyListWidgetItem(QListWidgetItem):
-    def __lt__(self, other: QListWidgetItem):
-        if self.data(Qt.ItemDataRole.EditRole) == "add-task":
-            return False
-        elif other.data(Qt.ItemDataRole.EditRole) == "add-task":
-            return True
-        mine: Todo = self.data(UserRole)
-        theirs: Todo = other.data(UserRole)
-        if mine.summary == NEW_TASK_TEXT:
-            return False
-        if theirs.summary == NEW_TASK_TEXT:
-            return True
-        if mine.dueDate is None and theirs.dueDate is not None:
-            return False
-        if theirs.dueDate is None and mine.dueDate is not None:
-            return True
-        return (mine.dueDate, mine.summary) < (theirs.dueDate, theirs.summary)
-
-
-class TaskOverlayWidget(QWidget):
-    pass
+from .taskitemdelegate import TaskItemDelegate
+from .taskwidgets import NEW_TASK_TEXT, CompletionPushButton, MyListWidgetItem, TaskOverlayWidget, UserRole
 
 
 class TaskListView(QListWidget):
@@ -151,7 +48,7 @@ class TaskListView(QListWidget):
         self._addTaskItem.setData(Qt.ItemDataRole.EditRole, "add-task")
         self.addItem(self._addTaskItem)
         addButton = QPushButton(QIcon.fromTheme("list-add"), "Add Task")
-        addButton.clicked.connect(self.onAddTask)
+        addButton.clicked.connect(self.addEmptyTask)
         self.setItemWidget(self._addTaskItem, addButton)
 
     def setCalendarFilter(self, calendarName):
@@ -176,19 +73,18 @@ class TaskListView(QListWidget):
         self.todolist.syncCalendar(self.todolist.calendars[todo.calendarName])
         print("... and synced!")
 
-    def onAddTask(self):
+    def addEmptyTask(self):
         if self._currentCalendarName is None:
             print("Please select a calendar first!")
             return
         calendar = self.todolist.calendars[self._currentCalendarName]
-        todo = Todo(
-            caldav.Todo(
-                calendar.client,
-                data=calendar._use_or_create_ics(f"SUMMARY:{NEW_TASK_TEXT}", objtype="VTODO"),
-                parent=calendar,
-            ),
-            calendarName=calendar.name,
-        )
+        todo = calendar.createTodo(NEW_TASK_TEXT)
         item = self.addTask(todo)
         self.sortItems()
+        self.removeItemWidget(item)
         self.editItem(item)
+
+    def keyPressEvent(self, event: QKeyEvent) -> None:
+        if event.key() == Qt.Key.Key_Plus:
+            self.addEmptyTask()
+        return super().keyPressEvent(event)

@@ -1,6 +1,8 @@
-from PySide6.QtCore import *
-from PySide6.QtGui import *
-from PySide6.QtWidgets import *
+from typing import Iterable
+
+from PySide6.QtCore import QModelIndex, QPersistentModelIndex, QSize, Qt
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import QItemDelegate, QListWidget, QListWidgetItem, QSizePolicy, QStyleOptionViewItem, QWidget
 
 from melon.tasks import Calendar
 
@@ -22,9 +24,10 @@ class CalendarListView(QListWidget):
         homeItem.setData(Qt.ItemDataRole.UserRole, {"is-special": True, "specialty": "all"})
         self.addItem(homeItem)
 
-    def populate(self, calendars: list[Calendar]):
+    def populate(self, calendars: Iterable[Calendar]):
         icon = QIcon.fromTheme("view-list-symbolic")
         for calendar in calendars:
-            item = QListWidgetItem(icon, calendar.name)
+            assert calendar.name is not None
+            item = QListWidgetItem(icon=icon, text=calendar.name)
             self.addItem(item)
         self.sortItems()

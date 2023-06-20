@@ -27,10 +27,11 @@ class Calendar(caldav.Calendar):
 
     def store_to_file(self):
         ical = vobject.iCalendar()
+        assert self.syncable is not None
         for task in self.syncable:
             ical.add(task.vobject_instance)
         with open(CONFIG_FOLDER / f"{self.name}.dav", "w") as f:
-            ical.serialize(f)
+            ical.serialize(f)  # type: ignore
 
     @staticmethod
     def load_from_file(client: caldav.DAVClient, principal: caldav.Principal, name: str, sync_token: str, url: str):
@@ -48,29 +49,49 @@ class Calendar(caldav.Calendar):
         logging.info(f"Calendar {name}: loaded {len(objects)} objects.")
         return cal
 
+    def createTodo(self, summary: str):
+        assert self.name is not None
+        return Todo(
+            caldav.Todo(
+                self.client,
+                data=self._use_or_create_ics(f"SUMMARY:{summary}", objtype="VTODO"),  # type: ignore
+                parent=self,
+            ),
+            calendarName=self.name,
+        )
+
+    def storageObject(self) -> dict:
+        assert self.syncable is not None
+        return {
+            "url": str(self.url),
+            "token": self.syncable.sync_token,  # type: ignore
+        }
+
 
 class Todo(caldav.Todo):
+    vobject_instance: vobject.base.Component
+
     def __init__(self, todo: caldav.Todo, calendarName: str):
         """A copy constructor"""
         super().__init__(todo.client, todo.url, todo.data, todo.parent, todo.id, todo.props)
         self.calendarName = calendarName
 
     @property
-    def vtodo(self):
-        return self.vobject_instance.contents["vtodo"][0]
+    def vtodo(self) -> vobject.base.Component:
+        return self.vobject_instance.contents["vtodo"][0]  # type: ignore
 
     @property
     def summary(self) -> str:
-        return self.vtodo.contents["summary"][0].value
+        return self.vtodo.contents["summary"][0].value  # type: ignore
 
     @summary.setter
     def summary(self, value: str):
-        self.vtodo.contents["summary"][0].value = value
+        self.vtodo.contents["summary"][0].value = value  # type: ignore
 
     @property
-    def dueDate(self) -> datetime.datetime:
+    def dueDate(self) -> datetime.datetime | None:
         if "due" in self.vtodo.contents:
-            due = self.vtodo.contents["due"][0].value
+            due = self.vtodo.contents["due"][0].value  # type: ignore
             if isinstance(due, datetime.date):
                 return datetime.datetime.combine(due, datetime.time())
             return due
@@ -78,7 +99,7 @@ class Todo(caldav.Todo):
     @property
     def uid(self) -> str | None:
         try:
-            return self.vtodo.contents["uid"][0].value
+            return self.vtodo.contents["uid"][0].value  # type: ignore
         except KeyError:
             return
 
@@ -109,7 +130,7 @@ class Todo(caldav.Todo):
 
 
 class TodoList:
-    HIDDEN_CALENDARS = ("calendar",)
+    HIDDEN_CALENDARS = ("calendar", None)
 
     def __init__(self) -> None:
         self.client = caldav.DAVClient(
@@ -138,7 +159,7 @@ class TodoList:
         if not self.calendars:
             self.connect()
         for calendar in self.calendars.values():
-            calendar.syncable = calendar.objects(load_objects=True)
+            calendar.syncable = calendar.objects_by_sync_token(load_objects=True)
             self._load_syncable_tasks(calendar)
             logging.info(f"Fetched {len(calendar.syncable)} full objects!")
 
@@ -146,10 +167,7 @@ class TodoList:
         for calendar in self.calendars.values():
             calendar.store_to_file()
         with open(CONFIG_FOLDER / "synctokens.json", "w") as f:
-            json.dump(
-                {cal.name: {"url": str(cal.url), "token": cal.syncable.sync_token} for cal in self.calendars.values()},
-                f,
-            )
+            json.dump({cal.name: cal.storageObject() for cal in self.calendars.values()}, f)
         logging.info(f"Stored {len(self.calendars)} calendars to disk.")
 
     def load(self):
@@ -176,7 +194,7 @@ class TodoList:
         calendar.syncable.objects = list(calendar.syncable.objects)
         self._load_syncable_tasks(calendar)
         logging.info(
-            f"Synced {calendar.name}, {len(updated)} updated and {len(deleted)} deleted entries. "
+            f"Synced {calendar.name:48} ({len(updated)} updated and {len(deleted)} deleted entries.) "
             f"In total, we have {len(calendar.syncable)} objects."
         )
 
