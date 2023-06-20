@@ -24,9 +24,7 @@ class GuiTodoList(TodoList):
                 self.tasklistView.item(i).setData(UserRole, todo)
                 self.tasklistView.blockSignals(False)
                 return
-        item, widget = self.tasklistView.createListItemFromTask(todo)
-        self.tasklistView.addItem(item)
-        self.tasklistView.setItemWidget(item, widget)
+        self.tasklistView.addTask(todo)
 
 
 class MainWindow(QWidget):
@@ -40,8 +38,11 @@ class MainWindow(QWidget):
         self.todolist.tasklistView = self.tasklistView
         self.calendarlistView = CalendarListView()
         self.calendarlistView.currentItemChanged.connect(self.calendarListClicked)
+        self.searchWidget = QLineEdit()
+        self.searchWidget.setPlaceholderText("Search tasks...")
 
         layout = QGridLayout(self)
+        # layout.addWidget(self.searchWidget, 0, 1, 1, 2)
         layout.addWidget(self.calendarlistView, 1, 1)
         layout.addWidget(self.tasklistView, 1, 2)
         self.setLayout(layout)
@@ -72,4 +73,8 @@ class MainWindow(QWidget):
             self.close()
         elif event.modifiers() == Qt.KeyboardModifier.ControlModifier and event.key() == Qt.Key.Key_S:
             self.sync()
+        elif event.modifiers() == Qt.KeyboardModifier.ControlModifier and event.key() == Qt.Key.Key_H:
+            self.calendarlistView.setCurrentRow(0)
+        # if Qt.Key.Key_A <= event.key() <= Qt.Key.Key_Z:
+        #     self.searchWidget.setFocus()
         return super().keyPressEvent(event)

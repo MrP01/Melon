@@ -32,10 +32,16 @@ class CompletionPushButton(QPushButton):
         self.okIcon.paint(painter, QRect(delta, delta, 32, 32))
 
 
-class TaskItemDelegate(QItemDelegate):
+class TaskItemDelegate(QStyledItemDelegate):
     def __init__(self, parent: QObject | None = None):
         super().__init__(parent)
         self.setItemEditorFactory(TaskItemEditorFactory())
+
+    def destroyEditor(self, editor: QWidget, index: QModelIndex | QPersistentModelIndex) -> None:
+        super().destroyEditor(editor, index)
+        listWidget: TaskListView = self.parent()
+        if listWidget.itemWidget(listWidget.itemFromIndex(index)) is None:
+            listWidget.attachTaskWidget(listWidget.itemFromIndex(index))
 
     def paint(self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex | QPersistentModelIndex):
         todo: Todo = index.data(UserRole)
@@ -101,25 +107,39 @@ class MyListWidgetItem(QListWidgetItem):
         return (mine.dueDate, mine.summary) < (theirs.dueDate, theirs.summary)
 
 
+class TaskOverlayWidget(QWidget):
+    pass
+
+
 class TaskListView(QListWidget):
     def __init__(self, todolist: TodoList):
         super().__init__()
         self.todolist = todolist
-        self.setItemDelegate(TaskItemDelegate())
+        self.setItemDelegate(TaskItemDelegate(self))
         self.setDragEnabled(True)
         self.itemChanged.connect(self.onItemChange)
         self._currentCalendarName = None
         self.addAddButton()
 
-    def createListItemFromTask(self, task: Todo):
+    def mouseDoubleClickEvent(self, event: QMouseEvent) -> None:
+        item = self.itemAt(event.position().toPoint())
+        self.removeItemWidget(item)
+        self.editItem(item)
+
+    def addTask(self, task: Todo) -> MyListWidgetItem:
         item = MyListWidgetItem(task.summary)
         item.setData(UserRole, task)
         item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsDragEnabled)
-        widget = QWidget(self)
+        self.addItem(item)
+        self.attachTaskWidget(item)
+        return item
+
+    def attachTaskWidget(self, item):
+        widget = TaskOverlayWidget(parent=self)
         completionBtn = CompletionPushButton(parent=widget)
         completionBtn.move(18, 8)
         completionBtn.clicked.connect(lambda: self.completeTask(item))
-        return item, widget
+        self.setItemWidget(item, widget)
 
     def completeTask(self, item: QListWidgetItem):
         task: Todo = item.data(UserRole)
@@ -169,7 +189,6 @@ class TaskListView(QListWidget):
             ),
             calendarName=calendar.name,
         )
-        newItem = self.createListItemFromTask(todo)
-        self.addItem(newItem)
+        item = self.addTask(todo)
         self.sortItems()
-        self.editItem(newItem)
+        self.editItem(item)
