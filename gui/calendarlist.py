@@ -28,6 +28,6 @@ class CalendarListView(QListWidget):
         icon = QIcon.fromTheme("view-list-symbolic")
         for calendar in calendars:
             assert calendar.name is not None
-            item = QListWidgetItem(icon=icon, text=calendar.name)
+            item = QListWidgetItem(icon, calendar.name)
             self.addItem(item)
         self.sortItems()

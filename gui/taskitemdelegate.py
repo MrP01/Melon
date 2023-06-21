@@ -1,12 +1,12 @@
 import datetime
 
-from PySide6.QtCore import QMargins, QModelIndex, QObject, QPersistentModelIndex, QRect, QSize, Qt
+from PySide6.QtCore import QMargins, QModelIndex, QObject, QPersistentModelIndex, QRect, QSize, Qt, Signal
 from PySide6.QtGui import QColor, QFont, QPainter, QPainterPath, QPen
 from PySide6.QtWidgets import QItemEditorFactory, QLineEdit, QStyle, QStyledItemDelegate, QStyleOptionViewItem, QWidget
 
 from melon.tasks import Todo
 
-from .tasklist import TaskListView, UserRole
+from .taskwidgets import UserRole
 
 ONE_DAY = datetime.timedelta(days=1)
 
@@ -20,16 +20,15 @@ class TaskItemEditorFactory(QItemEditorFactory):
 
 
 class TaskItemDelegate(QStyledItemDelegate):
+    editorDestroyed = Signal(QModelIndex | QPersistentModelIndex)
+
     def __init__(self, parent: QObject | None = None):
         super().__init__(parent)
         self.setItemEditorFactory(TaskItemEditorFactory())
 
     def destroyEditor(self, editor: QWidget, index: QModelIndex | QPersistentModelIndex) -> None:
         super().destroyEditor(editor, index)
-        listWidget = self.parent()
-        assert isinstance(listWidget, TaskListView)
-        if listWidget.itemWidget(listWidget.itemFromIndex(index)) is None:
-            listWidget.attachTaskWidget(listWidget.itemFromIndex(index))
+        self.editorDestroyed.emit(index)
 
     def paint(self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex | QPersistentModelIndex):
         todo: Todo = index.data(UserRole)

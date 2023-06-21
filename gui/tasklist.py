@@ -88,3 +88,7 @@ class TaskListView(QListWidget):
         if event.key() == Qt.Key.Key_Plus:
             self.addEmptyTask()
         return super().keyPressEvent(event)
+
+    def delegateEditorDestroyed(self, index):
+        if self.itemWidget(self.itemFromIndex(index)) is None:
+            self.attachTaskWidget(self.itemFromIndex(index))
