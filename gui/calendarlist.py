@@ -4,7 +4,7 @@ from PySide6.QtCore import QModelIndex, QPersistentModelIndex, QSize, Qt
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QItemDelegate, QListWidget, QListWidgetItem, QSizePolicy, QStyleOptionViewItem, QWidget
 
-from melon.tasks import Calendar
+from melon.calendar import Calendar
 
 
 class LargerListViewDelegate(QItemDelegate):

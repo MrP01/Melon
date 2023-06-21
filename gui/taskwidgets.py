@@ -2,7 +2,7 @@ from PySide6.QtCore import QRect, Qt
 from PySide6.QtGui import QIcon, QPainter, QPaintEvent
 from PySide6.QtWidgets import QListWidgetItem, QPushButton, QWidget
 
-from melon.tasks import Todo
+from melon.todo import Todo
 
 ADD_TASK_EDIT_ROLE = "add-task"
 NEW_TASK_TEXT = "An exciting new task!"

@@ -2,7 +2,8 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon, QKeyEvent, QMouseEvent
 from PySide6.QtWidgets import QListWidget, QListWidgetItem, QPushButton
 
-from melon.tasks import Todo, TodoList
+from melon.melon import TodoList
+from melon.todo import Todo
 
 from .taskitemdelegate import TaskItemDelegate
 from .taskwidgets import NEW_TASK_TEXT, CompletionPushButton, MyListWidgetItem, TaskOverlayWidget, UserRole

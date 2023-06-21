@@ -2,7 +2,8 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QCloseEvent, QKeyEvent
 from PySide6.QtWidgets import QApplication, QGridLayout, QLabel, QLineEdit, QListWidgetItem, QWidget
 
-from melon.tasks import Todo, TodoList
+from melon.melon import TodoList
+from melon.todo import Todo
 
 from .calendarlist import CalendarListView
 from .tasklist import TaskListView, UserRole

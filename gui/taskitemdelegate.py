@@ -4,7 +4,7 @@ from PySide6.QtCore import QMargins, QModelIndex, QObject, QPersistentModelIndex
 from PySide6.QtGui import QColor, QFont, QPainter, QPainterPath, QPen
 from PySide6.QtWidgets import QItemEditorFactory, QLineEdit, QStyle, QStyledItemDelegate, QStyleOptionViewItem, QWidget
 
-from melon.tasks import Todo
+from melon.todo import Todo
 
 from .taskwidgets import UserRole
 
@@ -50,6 +50,7 @@ class TaskItemDelegate(QStyledItemDelegate):
             elif dueDate.date() == today + ONE_DAY:
                 text = "tomorrow"
             painter.setPen(QPen(QColor(255, 100, 100) if dueDate.date() < today else QColor(150, 150, 150)))
+            print(dueDate.time())
             if dueDate.time() != datetime.time():
                 text += ", " + dueDate.strftime("%H:%M")
             painter.drawText(rect.translated(-10, 3), text, Qt.AlignmentFlag.AlignRight)
