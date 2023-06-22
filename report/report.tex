@@ -1,0 +1,57 @@
+\documentclass{prettytex/ox/mmsc-special-topic}
+\input{customisations.tex}
+\addbibresource{sources.bib}
+\tikzexternalize[prefix=tikz/]
+
+\newcommand{\topictitle}{
+  Melon - a Task Scheduling Package for Personal Todo Lists \\
+  \normalsize using Markov Chain Monte-Carlo Methods
+}
+\newcommand{\candidatenumber}{1072462}
+\newcommand{\course}{Python in Scientific Computing}
+
+\title{\topictitle}
+\author{Candidate \candidatenumber}
+\date{\today}
+
+\makenoidxglossaries
+\newacronym{ode}{ODE}{Ordinary Differential Equation}
+\newacronym{pde}{PDE}{Partial Differential Equation}
+\newacronym{gui}{GUI}{Graphical User Interface}
+
+\begin{document}
+  \pagestyle{plain}
+  \mmscSpecialHeader
+
+  \begin{abstract}
+    \label{abstract}
+    In this project report we will review the central concepts utilised in the group work conducted to make progress in the \gls{pde} problem associated with the electrochemical model of a battery cell and present numerical results.
+    \vspace*{0.2cm}
+
+    \noindent
+    \textbf{Our Goal:}
+    Numerically obtain the solution $\{a(x, T), b(x, T)\}$.
+
+    The Finite Difference schemes are implemented in Julia and Python, whereas the Spectral Method is implemented in C++.
+  \end{abstract}
+
+  \begin{figure}[H]
+    \centering
+    % \includegraphics[width=\linewidth]{figures/screenshot.png}
+    \caption{The \gls{gui} of the Spectral Solver.}
+    \label{fig:gui}
+  \end{figure}
+
+  \pagebreak
+  \pagestyle{normal}
+
+  \section{Problem Introduction}
+  \label{sec:introduction}
+
+  \pagebreak
+  \printbibliography
+  \printnoidxglossary[type=acronym]
+
+  % \appendix
+  % \section{Implementation}
+\end{document}
