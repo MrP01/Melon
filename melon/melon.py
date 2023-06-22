@@ -9,10 +9,13 @@ from .config import CONFIG, CONFIG_FOLDER
 from .todo import Todo
 
 
-class TodoList:
+class Melon:
     HIDDEN_CALENDARS = ("calendar", None)
 
     def __init__(self) -> None:
+        """
+        Args:
+        """
         self.client = caldav.DAVClient(
             CONFIG["client"]["url"],
             username=CONFIG["client"]["username"],
@@ -22,6 +25,9 @@ class TodoList:
         self.calendars: dict[str, Calendar] = {}
 
     def connect(self):
+        """
+        Args:
+        """
         self.principal = self.client.principal()
         logging.info("Obtained principal")
 
@@ -30,12 +36,19 @@ class TodoList:
         logging.info(f"Obtained {len(self.calendars)} calendars")
 
     def _load_syncable_tasks(self, calendar):
+        """
+        Args:
+            calendar : Argument
+        """
         for object in calendar.syncable:
             if "vtodo" in object.vobject_instance.contents:
                 todo = Todo(object, calendar.name)
                 self.addOrUpdateTask(todo)
 
     def initial_fetch(self):
+        """
+        Args:
+        """
         if not self.calendars:
             self.connect()
         for calendar in self.calendars.values():
@@ -44,6 +57,9 @@ class TodoList:
             logging.info(f"Fetched {len(calendar.syncable)} full objects!")
 
     def store(self):
+        """
+        Args:
+        """
         for calendar in self.calendars.values():
             calendar.store_to_file()
         with open(CONFIG_FOLDER / "synctokens.json", "w") as f:
@@ -51,6 +67,9 @@ class TodoList:
         logging.info(f"Stored {len(self.calendars)} calendars to disk.")
 
     def load(self):
+        """
+        Args:
+        """
         if self.principal is None:
             self.principal = self.client.principal()
             logging.info("Obtained principal")
@@ -66,10 +85,17 @@ class TodoList:
             self._load_syncable_tasks(calendar)
 
     def syncAll(self):
+        """
+        Args:
+        """
         for calendar in self.calendars.values():
             self.syncCalendar(calendar)
 
     def syncCalendar(self, calendar):
+        """
+        Args:
+            calendar : Argument
+        """
         updated, deleted = calendar.syncable.sync()
         calendar.syncable.objects = list(calendar.syncable.objects)
         self._load_syncable_tasks(calendar)
@@ -79,6 +105,9 @@ class TodoList:
         )
 
     def startup(self):
+        """
+        Args:
+        """
         tokensfile = CONFIG_FOLDER / "synctokens.json"
         if not tokensfile.exists():
             self.initial_fetch()
@@ -86,4 +115,7 @@ class TodoList:
             self.load()
 
     def addOrUpdateTask(self, todo: Todo):
-        pass
+        """
+        Args:
+            todo (Todo) : Argument
+        """

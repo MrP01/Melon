@@ -13,6 +13,14 @@ ONE_DAY = datetime.timedelta(days=1)
 
 class TaskItemEditorFactory(QItemEditorFactory):
     def createEditor(self, userType: int, parent: QWidget) -> QWidget:
+        """
+        Args:
+                userType (int) : Argument
+                parent (QWidget) : Argument
+
+        Returns:
+            (QWidget):
+        """
         edit = QLineEdit(parent)
         edit.setAlignment(Qt.AlignmentFlag.AlignTop)
         edit.setContentsMargins(18 + 32 + 10, 2, 2, 4)
@@ -23,14 +31,31 @@ class TaskItemDelegate(QStyledItemDelegate):
     editorDestroyed = Signal(QModelIndex | QPersistentModelIndex)
 
     def __init__(self, parent: QObject | None = None):
+        """
+        Args:
+            parent (Union[QObject, None], optional) : Argument
+                (default is None)
+        """
         super().__init__(parent)
         self.setItemEditorFactory(TaskItemEditorFactory())
 
     def destroyEditor(self, editor: QWidget, index: QModelIndex | QPersistentModelIndex) -> None:
+        """
+        Args:
+            editor (QWidget) : Argument
+            index (Union[QModelIndex, QPersistentModelIndex]) : Argument
+
+        """
         super().destroyEditor(editor, index)
         self.editorDestroyed.emit(index)
 
     def paint(self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex | QPersistentModelIndex):
+        """
+        Args:
+            painter (QPainter) : Argument
+            option (QStyleOptionViewItem) : Argument
+            index (Union[QModelIndex, QPersistentModelIndex]) : Argument
+        """
         todo: Todo = index.data(UserRole)
         if todo is None:
             return
@@ -73,4 +98,12 @@ class TaskItemDelegate(QStyledItemDelegate):
         painter.restore()
 
     def sizeHint(self, option: QStyleOptionViewItem, index: QModelIndex) -> QSize:
+        """
+        Args:
+                option (QStyleOptionViewItem) : Argument
+                index (QModelIndex) : Argument
+
+        Returns:
+            (QSize):
+        """
         return QSize(100, 50)

@@ -11,7 +11,11 @@ from .todo import Todo
 
 class Calendar(caldav.Calendar):
     def __init__(self, calendar: caldav.Calendar) -> None:
-        """A copy constructor"""
+        """A copy constructor
+        Args:
+            calendar (caldav.Calendar) : Argument
+
+        """
         super().__init__(
             calendar.client,
             calendar.url,
@@ -24,6 +28,9 @@ class Calendar(caldav.Calendar):
         self.syncable: caldav.SynchronizableCalendarObjectCollection | None = None
 
     def store_to_file(self):
+        """
+        Args:
+        """
         ical = vobject.iCalendar()
         assert self.syncable is not None
         for task in self.syncable:
@@ -33,6 +40,14 @@ class Calendar(caldav.Calendar):
 
     @staticmethod
     def load_from_file(client: caldav.DAVClient, principal: caldav.Principal, name: str, sync_token: str, url: str):
+        """
+        Args:
+            client (caldav.DAVClient) : Argument
+            principal (caldav.Principal) : Argument
+            name (str) : Argument
+            sync_token (str) : Argument
+            url (str) : Argument
+        """
         cal_url = caldav.lib.url.URL(url)
         with open(CONFIG_FOLDER / f"{name}.dav") as f:
             ical = icalendar.Calendar.from_ical(f.read())
@@ -48,6 +63,10 @@ class Calendar(caldav.Calendar):
         return cal
 
     def createTodo(self, summary: str):
+        """
+        Args:
+            summary (str) : Argument
+        """
         assert self.name is not None
         return Todo(
             caldav.Todo(
@@ -59,6 +78,10 @@ class Calendar(caldav.Calendar):
         )
 
     def storageObject(self) -> dict:
+        """
+        Returns:
+            (dict):
+        """
         assert self.syncable is not None
         return {
             "url": str(self.url),

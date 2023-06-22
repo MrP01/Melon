@@ -11,6 +11,10 @@ UserRole = Qt.ItemDataRole.UserRole
 
 class MyListWidgetItem(QListWidgetItem):
     def __lt__(self, other: QListWidgetItem):
+        """
+        Args:
+            other (QListWidgetItem) : Argument
+        """
         if self.data(Qt.ItemDataRole.EditRole) == ADD_TASK_EDIT_ROLE:
             return False
         elif other.data(Qt.ItemDataRole.EditRole) == ADD_TASK_EDIT_ROLE:
@@ -30,11 +34,20 @@ class MyListWidgetItem(QListWidgetItem):
 
 class CompletionPushButton(QPushButton):
     def __init__(self, parent: QWidget):
+        """
+        Args:
+            parent (QWidget) : Argument
+        """
         super().__init__(parent=parent)
         self.okIcon = QIcon("gui/assets/complete.png")
         self.setFixedSize(34, 34)
 
     def paintEvent(self, event: QPaintEvent) -> None:
+        """
+        Args:
+            event (QPaintEvent) : Argument
+
+        """
         painter = QPainter(self)
         delta = 2 if self.isDown() else 0
         self.okIcon.paint(painter, QRect(delta, delta, 32, 32))

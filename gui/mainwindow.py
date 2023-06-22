@@ -2,19 +2,24 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QCloseEvent, QKeyEvent
 from PySide6.QtWidgets import QApplication, QGridLayout, QLabel, QLineEdit, QListWidgetItem, QWidget
 
-from melon.melon import TodoList
+from melon.melon import Melon
 from melon.todo import Todo
 
 from .calendarlist import CalendarListView
 from .tasklist import TaskListView, UserRole
 
 
-class GuiTodoList(TodoList):
+class GuiMelon(Melon):
     def __init__(self) -> None:
+        """ """
         super().__init__()
         self.tasklistView: TaskListView | None = None
 
     def addOrUpdateTask(self, todo: Todo):
+        """
+        Args:
+            todo (Todo) : Argument
+        """
         assert self.tasklistView is not None
         if todo.isComplete():
             return
@@ -33,13 +38,17 @@ class GuiTodoList(TodoList):
 
 class MainWindow(QWidget):
     def __init__(self) -> None:
+        """ """
         super().__init__()
-        self.todolist = GuiTodoList()
+        self.melon = GuiMelon()
         self.setWindowTitle("Melon UI")
 
     def buildUI(self):
-        self.tasklistView = TaskListView(self.todolist)
-        self.todolist.tasklistView = self.tasklistView
+        """
+        Args:
+        """
+        self.tasklistView = TaskListView(self.melon)
+        self.melon.tasklistView = self.tasklistView
         self.calendarlistView = CalendarListView()
         self.calendarlistView.currentItemChanged.connect(self.calendarListClicked)
         self.searchWidget = QLineEdit()
@@ -56,23 +65,38 @@ class MainWindow(QWidget):
         self.setLayout(layout)
 
     def start(self):
-        self.todolist.startup()
+        """
+        Args:
+        """
+        self.melon.startup()
         self.tasklistView.sortItems()
-        self.calendarlistView.populate(self.todolist.calendars.values())
+        self.calendarlistView.populate(self.melon.calendars.values())
         # QTimer.singleShot(200, self.sync)
 
     def sync(self):
+        """
+        Args:
+        """
         self.showInfoMessage("Syncing...")
         QApplication.processEvents()
-        self.todolist.syncAll()
+        self.melon.syncAll()
         self.tasklistView.sortItems()
         self.hideMessage()
 
     def closeEvent(self, event: QCloseEvent) -> None:
-        self.todolist.store()
+        """
+        Args:
+            event (QCloseEvent) : Argument
+
+        """
+        self.melon.store()
         return super().closeEvent(event)
 
     def calendarListClicked(self, item: QListWidgetItem):
+        """
+        Args:
+            item (QListWidgetItem) : Argument
+        """
         userData = item.data(Qt.ItemDataRole.UserRole)
         if userData and userData["is-special"] and userData["specialty"] == "all":
             self.tasklistView.clearCalendarFilter()
@@ -80,6 +104,10 @@ class MainWindow(QWidget):
             self.tasklistView.setCalendarFilter(item.text())
 
     def keyPressEvent(self, event: QKeyEvent):
+        """
+        Args:
+            event (QKeyEvent) : Argument
+        """
         # print("Key Event", event)
         if event.modifiers() == Qt.KeyboardModifier.ControlModifier:
             if event.key() == Qt.Key.Key_W:
@@ -95,8 +123,15 @@ class MainWindow(QWidget):
         return super().keyPressEvent(event)
 
     def showInfoMessage(self, msg: str):
+        """
+        Args:
+            msg (str) : Argument
+        """
         self.messageLabel.setText(msg)
         self.messageLabel.setHidden(False)
 
     def hideMessage(self):
+        """
+        Args:
+        """
         self.messageLabel.setHidden(True)

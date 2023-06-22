@@ -9,11 +9,25 @@ from melon.calendar import Calendar
 
 class LargerListViewDelegate(QItemDelegate):
     def sizeHint(self, option: QStyleOptionViewItem, index: QModelIndex | QPersistentModelIndex) -> QSize:
+        """
+        Args:
+                option (QStyleOptionViewItem) : Argument
+                index (Union[QModelIndex, QPersistentModelIndex]) : Argument
+
+        Returns:
+            (QSize):
+        """
         return QSize(100, 27)
 
 
 class CalendarListView(QListWidget):
     def __init__(self, parent: QWidget | None = None) -> None:
+        """
+        Args:
+            parent (Union[QWidget, None], optional) : Argument
+                (default is None)
+
+        """
         super().__init__(parent)
         self.setItemDelegate(LargerListViewDelegate())
         policy = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding)
@@ -25,6 +39,10 @@ class CalendarListView(QListWidget):
         self.addItem(homeItem)
 
     def populate(self, calendars: Iterable[Calendar]):
+        """
+        Args:
+            calendars (Iterable[Calendar]) : Argument
+        """
         icon = QIcon.fromTheme("view-list-symbolic")
         for calendar in calendars:
             assert calendar.name is not None

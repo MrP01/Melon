@@ -13,6 +13,7 @@ pyside6 = "<6.5"
 [tool.poetry.group.dev.dependencies]
 ipython = "^8.14.0"
 dill = "^0.3.6"
+interrogate = "^1.5.0"
 
 [tool.black]
 line-length = 120
