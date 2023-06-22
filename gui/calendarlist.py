@@ -15,8 +15,8 @@ class LargerListViewDelegate(QItemDelegate):
         """Returns a size hint for each list widget item, constant in this case.
 
         Args:
-                option (QStyleOptionViewItem) : Argument
-                index (Union[QModelIndex, QPersistentModelIndex]) : Argument
+            option (QStyleOptionViewItem) : Argument
+            index (Union[QModelIndex, QPersistentModelIndex]) : Argument
 
         Returns:
             (QSize):

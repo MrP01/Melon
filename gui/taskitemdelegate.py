@@ -18,8 +18,8 @@ class TaskItemEditorFactory(QItemEditorFactory):
     def createEditor(self, userType: int, parent: QWidget) -> QWidget:
         """
         Args:
-                userType (int) : Argument
-                parent (QWidget) : Argument
+            userType (int) : Argument
+            parent (QWidget) : Argument
 
         Returns:
             (QWidget):
@@ -105,8 +105,8 @@ class TaskItemDelegate(QStyledItemDelegate):
     def sizeHint(self, option: QStyleOptionViewItem, index: QModelIndex) -> QSize:
         """
         Args:
-                option (QStyleOptionViewItem) : Argument
-                index (QModelIndex) : Argument
+            option (QStyleOptionViewItem) : Argument
+            index (QModelIndex) : Argument
 
         Returns:
             (QSize):
