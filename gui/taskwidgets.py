@@ -1,3 +1,6 @@
+"""A collection of widgets and classes for the definition of task display in the UI."""
+
+
 from PySide6.QtCore import QRect, Qt
 from PySide6.QtGui import QIcon, QPainter, QPaintEvent
 from PySide6.QtWidgets import QListWidgetItem, QPushButton, QWidget
@@ -9,9 +12,12 @@ NEW_TASK_TEXT = "An exciting new task!"
 UserRole = Qt.ItemDataRole.UserRole
 
 
-class MyListWidgetItem(QListWidgetItem):
+class OrderableTaskItem(QListWidgetItem):
+    """A subclass of QListWidgetItem that can be sorted according to a few specific rules, i.e. due date."""
+
     def __lt__(self, other: QListWidgetItem):
-        """
+        """This method will by called by QListWidget.sort() to compare items to one another.
+
         Args:
             other (QListWidgetItem) : Argument
         """
@@ -33,6 +39,8 @@ class MyListWidgetItem(QListWidgetItem):
 
 
 class CompletionPushButton(QPushButton):
+    """A push button that only displays a specific icon."""
+
     def __init__(self, parent: QWidget):
         """
         Args:
@@ -46,7 +54,6 @@ class CompletionPushButton(QPushButton):
         """
         Args:
             event (QPaintEvent) : Argument
-
         """
         painter = QPainter(self)
         delta = 2 if self.isDown() else 0
@@ -54,4 +61,10 @@ class CompletionPushButton(QPushButton):
 
 
 class TaskOverlayWidget(QWidget):
-    pass
+    """This is the task overlay widget we put above todos in the list display."""
+
+    def __init__(self, parent: QWidget | None = None) -> None:
+        """Initialises the widget and adds the necessary GUI subcomponents."""
+        super().__init__(parent)
+        self.completionBtn = CompletionPushButton(parent=self)
+        self.completionBtn.move(18, 8)

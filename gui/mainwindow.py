@@ -1,3 +1,5 @@
+"""This submodule defines the main window of our application."""
+
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QCloseEvent, QKeyEvent
 from PySide6.QtWidgets import QApplication, QGridLayout, QLabel, QLineEdit, QListWidgetItem, QWidget
@@ -10,8 +12,10 @@ from .tasklist import TaskListView, UserRole
 
 
 class GuiMelon(Melon):
+    """Subclasses the `Melon` main object, adding a handler for changes within the data."""
+
     def __init__(self) -> None:
-        """ """
+        """Initialises the Melon."""
         super().__init__()
         self.tasklistView: TaskListView | None = None
 
@@ -37,8 +41,10 @@ class GuiMelon(Melon):
 
 
 class MainWindow(QWidget):
+    """Main Window class that defines most of the UI."""
+
     def __init__(self) -> None:
-        """ """
+        """Initialises the main window."""
         super().__init__()
         self.melon = GuiMelon()
         self.setWindowTitle("Melon UI")

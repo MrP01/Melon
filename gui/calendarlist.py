@@ -1,3 +1,4 @@
+"""In this submodule, we define the calendar list widget (on the left)."""
 from typing import Iterable
 
 from PySide6.QtCore import QModelIndex, QPersistentModelIndex, QSize, Qt
@@ -8,8 +9,11 @@ from melon.calendar import Calendar
 
 
 class LargerListViewDelegate(QItemDelegate):
+    """An item delegate that slightly increases the display size of each item."""
+
     def sizeHint(self, option: QStyleOptionViewItem, index: QModelIndex | QPersistentModelIndex) -> QSize:
-        """
+        """Returns a size hint for each list widget item, constant in this case.
+
         Args:
                 option (QStyleOptionViewItem) : Argument
                 index (Union[QModelIndex, QPersistentModelIndex]) : Argument
@@ -21,6 +25,8 @@ class LargerListViewDelegate(QItemDelegate):
 
 
 class CalendarListView(QListWidget):
+    """QListWidget subclass that shows the list of calendars."""
+
     def __init__(self, parent: QWidget | None = None) -> None:
         """
         Args:

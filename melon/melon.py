@@ -1,3 +1,9 @@
+"""This file is the main entry point of the melon package, containing the Melon class,
+the main point of contact for users of this package. It can be initialised like this:
+
+melon = Melon()
+melon.startup()
+"""
 import json
 import logging
 
@@ -10,6 +16,11 @@ from .todo import Todo
 
 
 class Melon:
+    """The Melon class, wrapping a caldav client and principal, loading specifics from the config.
+    Through me, users have access to calendars and todos.
+    I also handle load, sync and store functionality.
+    """
+
     HIDDEN_CALENDARS = ("calendar", None)
 
     def __init__(self) -> None:

@@ -1,3 +1,4 @@
+"""This module contains the Calendar class."""
 import logging
 
 import caldav
@@ -10,11 +11,15 @@ from .todo import Todo
 
 
 class Calendar(caldav.Calendar):
+    """Class representing a calendar (or todo list, if you want to call it that, this name is given by CalDAV).
+    A calendar is a collection of objects that can be synced to a CalDAV server.
+    In this implementation, the objects are stored within the `syncable` subclass.
+    """
+
     def __init__(self, calendar: caldav.Calendar) -> None:
         """A copy constructor
         Args:
             calendar (caldav.Calendar) : Argument
-
         """
         super().__init__(
             calendar.client,
@@ -28,9 +33,7 @@ class Calendar(caldav.Calendar):
         self.syncable: caldav.SynchronizableCalendarObjectCollection | None = None
 
     def store_to_file(self):
-        """
-        Args:
-        """
+        """Save the calendar objects to a local file on disk, in iCal format."""
         ical = vobject.iCalendar()
         assert self.syncable is not None
         for task in self.syncable:

@@ -1,3 +1,4 @@
+"""This submodule only does one thing: loading configuration from the right place."""
 import pathlib
 
 import tomllib

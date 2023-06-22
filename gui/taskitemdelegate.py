@@ -1,3 +1,4 @@
+"""This module defines how tasks should be rendered in the GUI."""
 import datetime
 
 from PySide6.QtCore import QMargins, QModelIndex, QObject, QPersistentModelIndex, QRect, QSize, Qt, Signal
@@ -12,6 +13,8 @@ ONE_DAY = datetime.timedelta(days=1)
 
 
 class TaskItemEditorFactory(QItemEditorFactory):
+    """Factory for task item *editors*."""
+
     def createEditor(self, userType: int, parent: QWidget) -> QWidget:
         """
         Args:
@@ -28,6 +31,8 @@ class TaskItemEditorFactory(QItemEditorFactory):
 
 
 class TaskItemDelegate(QStyledItemDelegate):
+    """The task item delegate responsible for rendering todos (= tasks)."""
+
     editorDestroyed = Signal(QModelIndex | QPersistentModelIndex)
 
     def __init__(self, parent: QObject | None = None):

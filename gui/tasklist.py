@@ -1,3 +1,4 @@
+"""This module defines the task list view widget."""
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon, QKeyEvent, QMouseEvent
 from PySide6.QtWidgets import QListWidget, QListWidgetItem, QPushButton
@@ -6,10 +7,12 @@ from melon.melon import Melon
 from melon.todo import Todo
 
 from .taskitemdelegate import TaskItemDelegate
-from .taskwidgets import NEW_TASK_TEXT, CompletionPushButton, MyListWidgetItem, TaskOverlayWidget, UserRole
+from .taskwidgets import NEW_TASK_TEXT, OrderableTaskItem, TaskOverlayWidget, UserRole
 
 
 class TaskListView(QListWidget):
+    """Subclass of QListWidget containing tasks."""
+
     def __init__(self, melon: Melon):
         """Initialise the task list, a QListWidget displaying tasks in a list, using data from `melon`.
 
@@ -33,7 +36,7 @@ class TaskListView(QListWidget):
         self.removeItemWidget(item)
         self.editItem(item)
 
-    def addTask(self, task: Todo) -> MyListWidgetItem:
+    def addTask(self, task: Todo) -> OrderableTaskItem:
         """
         Args:
             task (Todo) : Argument
@@ -41,7 +44,7 @@ class TaskListView(QListWidget):
         Returns:
             (MyListWidgetItem):
         """
-        item = MyListWidgetItem(task.summary)
+        item = OrderableTaskItem(task.summary)
         item.setData(UserRole, task)
         item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsDragEnabled)
         self.addItem(item)
@@ -54,9 +57,7 @@ class TaskListView(QListWidget):
             item : Argument
         """
         widget = TaskOverlayWidget(parent=self)
-        completionBtn = CompletionPushButton(parent=widget)
-        completionBtn.move(18, 8)
-        completionBtn.clicked.connect(lambda: self.completeTask(item))
+        widget.completionBtn.clicked.connect(lambda: self.completeTask(item))
         self.setItemWidget(item, widget)
 
     def completeTask(self, item: QListWidgetItem):
@@ -72,7 +73,7 @@ class TaskListView(QListWidget):
         """
         Args:
         """
-        self._addTaskItem = MyListWidgetItem("Add Task")
+        self._addTaskItem = OrderableTaskItem("Add Task")
         self._addTaskItem.setData(Qt.ItemDataRole.EditRole, "add-task")
         self.addItem(self._addTaskItem)
         addButton = QPushButton(QIcon.fromTheme("list-add"), "Add Task")
