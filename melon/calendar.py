@@ -18,6 +18,7 @@ class Calendar(caldav.Calendar):
 
     def __init__(self, calendar: caldav.Calendar) -> None:
         """A copy constructor
+
         Args:
             calendar (caldav.Calendar) : Argument
         """
