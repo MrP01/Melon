@@ -1,6 +1,6 @@
 """This submodule defines the main window of our application."""
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QCloseEvent, QKeyEvent
 from PySide6.QtWidgets import QApplication, QGridLayout, QLabel, QLineEdit, QListWidgetItem, QWidget
 
@@ -25,19 +25,21 @@ class GuiMelon(Melon):
             todo (Todo) : Argument
         """
         assert self.tasklistView is not None
-        if todo.isComplete():
-            return
         uid = todo.uid
         assert uid is not None
-        for i in range(self.tasklistView.count()):
-            data = self.tasklistView.item(i).data(UserRole)
-            if uid == getattr(data, "uid", None):
-                self.tasklistView.blockSignals(True)
-                self.tasklistView.item(i).setText(todo.summary)
-                self.tasklistView.item(i).setData(UserRole, todo)
-                self.tasklistView.blockSignals(False)
+        for row in range(self.tasklistView.count()):
+            data = self.tasklistView.item(row).data(UserRole)
+            if getattr(data, "uid", None) == uid:
+                if todo.isComplete():
+                    self.tasklistView.takeItem(row)
+                else:
+                    self.tasklistView.blockSignals(True)
+                    self.tasklistView.item(row).setText(todo.summary)
+                    self.tasklistView.item(row).setData(UserRole, todo)
+                    self.tasklistView.blockSignals(False)
                 return
-        self.tasklistView.addTask(todo)
+        if todo.isIncomplete():
+            self.tasklistView.addTask(todo)
 
 
 class MainWindow(QWidget):
@@ -77,7 +79,7 @@ class MainWindow(QWidget):
         self.melon.startup()
         self.tasklistView.sortItems()
         self.calendarlistView.populate(self.melon.calendars.values())
-        # QTimer.singleShot(200, self.sync)
+        QTimer.singleShot(200, self.sync)
 
     def sync(self):
         """

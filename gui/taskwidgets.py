@@ -1,6 +1,4 @@
 """A collection of widgets and classes for the definition of task display in the UI."""
-
-
 from PySide6.QtCore import QRect, Qt
 from PySide6.QtGui import QIcon, QPainter, QPaintEvent
 from PySide6.QtWidgets import QListWidgetItem, QPushButton, QWidget
@@ -35,7 +33,7 @@ class OrderableTaskItem(QListWidgetItem):
             return False
         if theirs.dueDate is None and mine.dueDate is not None:
             return True
-        return (mine.dueDate, mine.summary) < (theirs.dueDate, theirs.summary)
+        return (mine.dueDate, mine.dueTime, mine.summary) < (theirs.dueDate, theirs.dueTime, theirs.summary)
 
 
 class CompletionPushButton(QPushButton):

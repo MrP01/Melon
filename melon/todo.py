@@ -47,16 +47,27 @@ class Todo(caldav.Todo):
         self.vtodo.contents["summary"][0].value = value  # type: ignore
 
     @property
-    def dueDate(self) -> datetime.datetime | None:
+    def dueDate(self) -> datetime.date | None:
         """
         Returns:
-            (Union[datetime.datetime, None]):
+            (datetime.datetime | datetime.date | None):
         """
         if "due" in self.vtodo.contents:
             due = self.vtodo.contents["due"][0].value  # type: ignore
-            if isinstance(due, datetime.date):
-                return datetime.datetime.combine(due, datetime.time())
-            return due
+            if isinstance(due, datetime.datetime):
+                return due.date()
+            return due  # otherwise, this value is a date
+
+    @property
+    def dueTime(self) -> datetime.time | None:
+        """
+        Returns:
+            (datetime.datetime | datetime.date | None):
+        """
+        if "due" in self.vtodo.contents:
+            due = self.vtodo.contents["due"][0].value  # type: ignore
+            if isinstance(due, datetime.datetime):
+                return due.time()
 
     @property
     def uid(self) -> str | None:

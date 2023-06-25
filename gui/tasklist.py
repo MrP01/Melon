@@ -21,7 +21,9 @@ class TaskListView(QListWidget):
         """
         super().__init__()
         self.melon = melon
-        self.setItemDelegate(TaskItemDelegate(self))
+        delegate = TaskItemDelegate(self)
+        self.setItemDelegate(delegate)
+        delegate.editorDestroyed.connect(self.delegateEditorDestroyed)
         self.setDragEnabled(True)
         self.itemChanged.connect(self.onItemChange)
         self._currentCalendarName = None

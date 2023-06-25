@@ -33,7 +33,7 @@ class TaskItemEditorFactory(QItemEditorFactory):
 class TaskItemDelegate(QStyledItemDelegate):
     """The task item delegate responsible for rendering todos (= tasks)."""
 
-    editorDestroyed = Signal(QModelIndex | QPersistentModelIndex)
+    editorDestroyed = Signal(QModelIndex)
 
     def __init__(self, parent: QObject | None = None):
         """
@@ -49,7 +49,6 @@ class TaskItemDelegate(QStyledItemDelegate):
         Args:
             editor (QWidget) : Argument
             index (Union[QModelIndex, QPersistentModelIndex]) : Argument
-
         """
         super().destroyEditor(editor, index)
         self.editorDestroyed.emit(index)
@@ -71,18 +70,18 @@ class TaskItemDelegate(QStyledItemDelegate):
 
         dueDate = todo.dueDate
         if dueDate:
+            dueTime = todo.dueTime
             text = dueDate.strftime("%d.%m.%Y")
             today = datetime.date.today()
-            if dueDate.date() == today:
+            if dueDate == today:
                 text = "today"
-            elif dueDate.date() == today - ONE_DAY:
+            elif dueDate == today - ONE_DAY:
                 text = "yesterday"
-            elif dueDate.date() == today + ONE_DAY:
+            elif dueDate == today + ONE_DAY:
                 text = "tomorrow"
-            painter.setPen(QPen(QColor(255, 100, 100) if dueDate.date() < today else QColor(150, 150, 150)))
-            print(dueDate.time())
-            if dueDate.time() != datetime.time():
-                text += ", " + dueDate.strftime("%H:%M")
+            painter.setPen(QPen(QColor(255, 100, 100) if dueDate < today else QColor(150, 150, 150)))
+            if dueTime is not None:
+                text += ", " + dueTime.strftime("%H:%M")
             painter.drawText(rect.translated(-10, 3), text, Qt.AlignmentFlag.AlignRight)
 
         path = QPainterPath()
