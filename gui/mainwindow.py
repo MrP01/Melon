@@ -1,8 +1,8 @@
 """This submodule defines the main window of our application."""
 
+from PySide6 import QtWidgets
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QCloseEvent, QKeyEvent
-from PySide6.QtWidgets import QApplication, QGridLayout, QLabel, QLineEdit, QListWidgetItem, QWidget
 
 from melon.melon import Melon
 from melon.todo import Todo
@@ -42,7 +42,7 @@ class GuiMelon(Melon):
             self.tasklistView.addTask(todo)
 
 
-class MainWindow(QWidget):
+class MainWindow(QtWidgets.QWidget):
     """Main Window class that defines most of the UI."""
 
     def __init__(self) -> None:
@@ -59,13 +59,13 @@ class MainWindow(QWidget):
         self.melon.tasklistView = self.tasklistView
         self.calendarlistView = CalendarListView()
         self.calendarlistView.currentItemChanged.connect(self.calendarListClicked)
-        self.searchWidget = QLineEdit()
+        self.searchWidget = QtWidgets.QLineEdit()
         self.searchWidget.setPlaceholderText("Search tasks...")
-        self.messageLabel = QLabel(self)
+        self.messageLabel = QtWidgets.QLabel(self)
         self.messageLabel.setHidden(True)
         self.messageLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        layout = QGridLayout(self)
+        layout = QtWidgets.QGridLayout(self)
         layout.addWidget(self.messageLabel, 0, 1, 1, 2)
         # layout.addWidget(self.searchWidget, 0, 1, 1, 2)
         layout.addWidget(self.calendarlistView, 1, 1)
@@ -86,7 +86,7 @@ class MainWindow(QWidget):
         Args:
         """
         self.showInfoMessage("Syncing...")
-        QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
         self.melon.syncAll()
         self.tasklistView.sortItems()
         self.hideMessage()
@@ -100,7 +100,7 @@ class MainWindow(QWidget):
         self.melon.store()
         return super().closeEvent(event)
 
-    def calendarListClicked(self, item: QListWidgetItem):
+    def calendarListClicked(self, item: QtWidgets.QListWidgetItem):
         """
         Args:
             item (QListWidgetItem): Argument

@@ -3,9 +3,9 @@ import logging
 import re
 
 import dateparser.search
+from PySide6 import QtWidgets
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon, QKeyEvent, QMouseEvent
-from PySide6.QtWidgets import QListWidget, QListWidgetItem, QPushButton
 
 from melon.melon import Melon
 from melon.todo import Todo
@@ -14,7 +14,7 @@ from .taskitemdelegate import TaskItemDelegate
 from .taskwidgets import NEW_TASK_TEXT, OrderableTaskItem, TaskOverlayWidget, UserRole
 
 
-class TaskListView(QListWidget):
+class TaskListView(QtWidgets.QListWidget):
     """Subclass of QListWidget containing tasks."""
 
     def __init__(self, melon: Melon):
@@ -66,7 +66,7 @@ class TaskListView(QListWidget):
         widget.completionBtn.clicked.connect(lambda: self.completeTask(item))
         self.setItemWidget(item, widget)
 
-    def completeTask(self, item: QListWidgetItem):
+    def completeTask(self, item: QtWidgets.QListWidgetItem):
         """
         Args:
             item (QListWidgetItem): Argument
@@ -82,7 +82,7 @@ class TaskListView(QListWidget):
         self._addTaskItem = OrderableTaskItem("Add Task")
         self._addTaskItem.setData(Qt.ItemDataRole.EditRole, "add-task")
         self.addItem(self._addTaskItem)
-        addButton = QPushButton(QIcon.fromTheme("list-add"), "Add Task")
+        addButton = QtWidgets.QPushButton(QIcon.fromTheme("list-add"), "Add Task")
         addButton.clicked.connect(self.addEmptyTask)
         self.setItemWidget(self._addTaskItem, addButton)
 
@@ -107,7 +107,7 @@ class TaskListView(QListWidget):
             self.item(i).setHidden(False)
         self._currentCalendarName = None
 
-    def onItemChange(self, item: QListWidgetItem):
+    def onItemChange(self, item: QtWidgets.QListWidgetItem):
         """
         Args:
             item (QListWidgetItem): Argument
