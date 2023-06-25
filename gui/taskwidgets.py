@@ -33,7 +33,7 @@ class OrderableTaskItem(QListWidgetItem):
             return False
         if theirs.dueDate is None and mine.dueDate is not None:
             return True
-        return (mine.dueDate, mine.dueTime, mine.summary) < (theirs.dueDate, theirs.dueTime, theirs.summary)
+        return (mine.dueDate, mine.summary) < (theirs.dueDate, theirs.summary)
 
 
 class CompletionPushButton(QPushButton):

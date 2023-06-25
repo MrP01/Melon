@@ -1,4 +1,8 @@
 """This module defines the task list view widget."""
+import logging
+import re
+
+import dateparser.search
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon, QKeyEvent, QMouseEvent
 from PySide6.QtWidgets import QListWidget, QListWidgetItem, QPushButton
@@ -109,11 +113,23 @@ class TaskListView(QListWidget):
             item (QListWidgetItem) : Argument
         """
         todo: Todo = item.data(UserRole)
-        todo.summary = item.text()
+        text = item.text()
+        if "clear" in text:
+            todo.dueDate = None
+            text = text.replace("clear", "")
+        else:
+            extractedDateTime = dateparser.search.search_dates(text)
+            if extractedDateTime:
+                token, stamp = extractedDateTime[0]
+                if re.search(r"\d", token):
+                    todo.dueDate = stamp
+                else:
+                    todo.dueDate = stamp.date()
+        todo.summary = text.strip()
         todo.save()
-        print("... saved!")
+        logging.info("... saved!")
         self.melon.syncCalendar(self.melon.calendars[todo.calendarName])
-        print("... and synced!")
+        logging.debug("... and synced!")
 
     def addEmptyTask(self):
         """
@@ -127,6 +143,7 @@ class TaskListView(QListWidget):
         item = self.addTask(todo)
         self.sortItems()
         self.removeItemWidget(item)
+        self.scrollToItem(item)
         self.editItem(item)
 
     def keyPressEvent(self, event: QKeyEvent) -> None:
@@ -134,8 +151,8 @@ class TaskListView(QListWidget):
         Args:
             event (QKeyEvent) : Argument
         """
-        if event.key() == Qt.Key.Key_Plus:
-            self.addEmptyTask()
+        # if event.key() == Qt.Key.Key_Plus:
+        #     self.addEmptyTask()
         return super().keyPressEvent(event)
 
     def delegateEditorDestroyed(self, index):

@@ -4,6 +4,8 @@ from typing import Literal
 
 import caldav
 import caldav.lib.url
+import icalendar.cal
+import icalendar.prop
 import vobject
 
 
@@ -11,6 +13,7 @@ class Todo(caldav.Todo):
     """A class representing todos (= tasks), subclassing the caldav.Todo object which in turn stores VTODO data."""
 
     vobject_instance: vobject.base.Component
+    icalendar_component: icalendar.cal.Todo
 
     def __init__(self, todo: caldav.Todo, calendarName: str):
         """A copy constructor
@@ -56,7 +59,19 @@ class Todo(caldav.Todo):
             due = self.vtodo.contents["due"][0].value  # type: ignore
             if isinstance(due, datetime.datetime):
                 return due.date()
-            return due  # otherwise, this value is a date
+            return due  # otherwise, this value is already a datetime.date
+
+    @dueDate.setter
+    def dueDate(self, value: datetime.date | None) -> None:
+        """Sets my due date.
+
+        Args:
+            value (datetime.date): Date to set.
+        """
+        if value is None:
+            del self.icalendar_component["due"]
+        else:
+            self.icalendar_component["due"] = icalendar.prop.vDDDTypes(value)
 
     @property
     def dueTime(self) -> datetime.time | None:
