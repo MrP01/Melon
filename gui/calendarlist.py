@@ -15,8 +15,8 @@ class LargerListViewDelegate(QItemDelegate):
         """Returns a size hint for each list widget item, constant in this case.
 
         Args:
-            option (QStyleOptionViewItem) : Argument
-            index (Union[QModelIndex, QPersistentModelIndex]) : Argument
+            option (QStyleOptionViewItem): Argument
+            index (Union[QModelIndex, QPersistentModelIndex]): Argument
 
         Returns:
             (QSize):
@@ -30,7 +30,7 @@ class CalendarListView(QListWidget):
     def __init__(self, parent: QWidget | None = None) -> None:
         """
         Args:
-            parent (Union[QWidget, None], optional) : Argument
+            parent (Union[QWidget, None], optional): Argument
                 (default is None)
 
         """
@@ -47,7 +47,7 @@ class CalendarListView(QListWidget):
     def populate(self, calendars: Iterable[Calendar]):
         """
         Args:
-            calendars (Iterable[Calendar]) : Argument
+            calendars (Iterable[Calendar]): Argument
         """
         icon = QIcon.fromTheme("view-list-symbolic")
         for calendar in calendars:

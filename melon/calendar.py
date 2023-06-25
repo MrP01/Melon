@@ -20,7 +20,7 @@ class Calendar(caldav.Calendar):
         """A copy constructor
 
         Args:
-            calendar (caldav.Calendar) : Argument
+            calendar (caldav.Calendar): Argument
         """
         super().__init__(
             calendar.client,
@@ -46,11 +46,11 @@ class Calendar(caldav.Calendar):
     def load_from_file(client: caldav.DAVClient, principal: caldav.Principal, name: str, sync_token: str, url: str):
         """
         Args:
-            client (caldav.DAVClient) : Argument
-            principal (caldav.Principal) : Argument
-            name (str) : Argument
-            sync_token (str) : Argument
-            url (str) : Argument
+            client (caldav.DAVClient): Argument
+            principal (caldav.Principal): Argument
+            name (str): Argument
+            sync_token (str): Argument
+            url (str): Argument
         """
         cal_url = caldav.lib.url.URL(url)
         with open(CONFIG_FOLDER / f"{name}.dav") as f:
@@ -58,7 +58,7 @@ class Calendar(caldav.Calendar):
         objects = []
         cal = Calendar(caldav.Calendar(client, parent=principal.calendar_home_set, name=name, url=url))
         for task in ical.subcomponents:
-            todo = Todo(caldav.Todo(client, parent=cal), name)
+            todo = Todo.upgrade(caldav.Todo(client, parent=cal), name)
             todo.icalendar_instance = task
             todo.url = cal_url.join(str(task.subcomponents[0].get("uid")) + ".ics")
             objects.append(todo)
@@ -69,15 +69,13 @@ class Calendar(caldav.Calendar):
     def createTodo(self, summary: str):
         """
         Args:
-            summary (str) : Argument
+            summary (str): Argument
         """
         assert self.name is not None
         return Todo(
-            caldav.Todo(
-                self.client,
-                data=self._use_or_create_ics(f"SUMMARY:{summary}", objtype="VTODO"),  # type: ignore
-                parent=self,
-            ),
+            self.client,
+            data=self._use_or_create_ics(f"SUMMARY:{summary}", objtype="VTODO"),  # type: ignore
+            parent=self,
             calendarName=self.name,
         )
 

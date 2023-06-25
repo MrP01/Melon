@@ -6,6 +6,7 @@ melon.startup()
 """
 import json
 import logging
+from typing import Iterable
 
 import caldav
 import caldav.lib.url
@@ -49,14 +50,14 @@ class Melon:
     def _load_syncable_tasks(self, calendar):
         """
         Args:
-            calendar : Argument
+            calendar: Argument
         """
         for object in calendar.syncable:
             if "vtodo" in object.vobject_instance.contents:
-                todo = Todo(object, calendar.name)
+                todo = Todo.upgrade(object, calendar.name)
                 self.addOrUpdateTask(todo)
 
-    def initial_fetch(self):
+    def initialFetch(self):
         """
         Args:
         """
@@ -95,17 +96,20 @@ class Melon:
         for calendar in self.calendars.values():
             self._load_syncable_tasks(calendar)
 
-    def syncAll(self):
+    def init(self):
         """
         Args:
         """
-        for calendar in self.calendars.values():
-            self.syncCalendar(calendar)
+        tokensfile = CONFIG_FOLDER / "synctokens.json"
+        if not tokensfile.exists():
+            self.initialFetch()
+        else:
+            self.load()
 
     def syncCalendar(self, calendar):
         """
         Args:
-            calendar : Argument
+            calendar: Argument
         """
         updated, deleted = calendar.syncable.sync()
         calendar.syncable.objects = list(calendar.syncable.objects)
@@ -115,18 +119,31 @@ class Melon:
             f"In total, we have {len(calendar.syncable)} objects."
         )
 
-    def startup(self):
+    def syncAll(self):
         """
         Args:
         """
-        tokensfile = CONFIG_FOLDER / "synctokens.json"
-        if not tokensfile.exists():
-            self.initial_fetch()
-        else:
-            self.load()
+        for calendar in self.calendars.values():
+            self.syncCalendar(calendar)
+
+    def findTask(self, string: str) -> Iterable[Todo]:
+        """Finds a task given a search query
+
+        Args:
+            string (str): the search query.
+
+        Returns:
+            Iterable[Todo]: the generated search results.
+        """
+        for calendar in self.calendars.values():
+            if calendar.syncable is None:
+                continue
+            for object in calendar.syncable.objects:
+                if string in object.data and object.isTodo():
+                    yield object
 
     def addOrUpdateTask(self, todo: Todo):
         """
         Args:
-            todo (Todo) : Argument
+            todo (Todo): Argument
         """

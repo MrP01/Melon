@@ -19,8 +19,8 @@ class TaskItemEditorFactory(QtWidgets.QItemEditorFactory):
     def createEditor(self, userType: int, parent: QtWidgets.QWidget) -> QtWidgets.QWidget:
         """
         Args:
-            userType (int) : Argument
-            parent (QWidget) : Argument
+            userType (int): Argument
+            parent (QWidget): Argument
 
         Returns:
             (QWidget):
@@ -65,7 +65,7 @@ class TaskItemDelegate(QtWidgets.QStyledItemDelegate):
     def __init__(self, parent: QObject | None = None):
         """
         Args:
-            parent (Union[QObject, None], optional) : Argument
+            parent (Union[QObject, None], optional): Argument
                 (default is None)
         """
         super().__init__(parent)
@@ -74,20 +74,23 @@ class TaskItemDelegate(QtWidgets.QStyledItemDelegate):
     def destroyEditor(self, editor: QtWidgets.QWidget, index: QModelIndex | QPersistentModelIndex) -> None:
         """
         Args:
-            editor (QWidget) : Argument
-            index (Union[QModelIndex, QPersistentModelIndex]) : Argument
+            editor (QWidget): Argument
+            index (Union[QModelIndex, QPersistentModelIndex]): Argument
         """
         super().destroyEditor(editor, index)
         self.editorDestroyed.emit(index)
 
     def paint(
-        self, painter: QPainter, option: QtWidgets.QStyleOptionViewItem, index: QModelIndex | QPersistentModelIndex
+        self,
+        painter: QPainter,
+        option: QtWidgets.QStyleOptionViewItem,
+        index: QModelIndex | QPersistentModelIndex,
     ):
         """
         Args:
-            painter (QPainter) : Argument
-            option (QStyleOptionViewItem) : Argument
-            index (Union[QModelIndex, QPersistentModelIndex]) : Argument
+            painter (QPainter): Argument
+            option (QStyleOptionViewItem): Argument
+            index (Union[QModelIndex, QPersistentModelIndex]): Argument
         """
         todo: Todo = index.data(UserRole)
         if todo is None:
@@ -95,6 +98,10 @@ class TaskItemDelegate(QtWidgets.QStyledItemDelegate):
 
         rect: QRect = option.rect  # type: ignore
         painter.save()
+        if todo.priority < 3:
+            painter.setPen(QColor(255, 100, 100))
+        elif todo.priority < 7:
+            painter.setPen(QColor(33, 150, 243))
         painter.drawText(rect.translated(18 + 32 + 14, 3), todo.summary)
 
         dueDate = todo.dueDate
@@ -133,8 +140,8 @@ class TaskItemDelegate(QtWidgets.QStyledItemDelegate):
     def sizeHint(self, option: QtWidgets.QStyleOptionViewItem, index: QModelIndex) -> QSize:
         """
         Args:
-            option (QStyleOptionViewItem) : Argument
-            index (QModelIndex) : Argument
+            option (QStyleOptionViewItem): Argument
+            index (QModelIndex): Argument
 
         Returns:
             (QSize):

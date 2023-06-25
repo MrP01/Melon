@@ -15,15 +15,20 @@ class Todo(caldav.Todo):
     vobject_instance: vobject.base.Component
     icalendar_component: icalendar.cal.Todo
 
-    def __init__(self, todo: caldav.Todo, calendarName: str):
+    def __init__(self, *args, calendarName: str | None = None, **kwargs):
+        """Initialises the base class"""
+        super().__init__(*args, **kwargs)
+        self.calendarName = calendarName
+
+    @staticmethod
+    def upgrade(todo: caldav.Todo, calendarName: str) -> "Todo":
         """A copy constructor
 
         Args:
-            todo (caldav.Todo) : Argument
-            calendarName (str) : Argument
+            todo (caldav.Todo): Argument
+            calendarName (str): Argument
         """
-        super().__init__(todo.client, todo.url, todo.data, todo.parent, todo.id, todo.props)
-        self.calendarName = calendarName
+        return Todo(todo.client, todo.url, todo.data, todo.parent, todo.id, todo.props, calendarName=calendarName)
 
     @property
     def vtodo(self) -> vobject.base.Component:
@@ -45,7 +50,7 @@ class Todo(caldav.Todo):
     def summary(self, value: str):
         """
         Args:
-            value (str) : Argument
+            value (str): Argument
         """
         self.vtodo.contents["summary"][0].value = value  # type: ignore
 
@@ -95,6 +100,16 @@ class Todo(caldav.Todo):
         except KeyError:
             return
 
+    @property
+    def priority(self) -> int:
+        """
+        Returns:
+            int: the priority of the task, an integer between 1 and 9,
+                 where 1 corresponds to the highest and 9 to the lowest priority
+        """
+        value = self.icalendar_component.get("priority")
+        return int(value) if value is not None else 9
+
     def isIncomplete(self) -> bool:
         """
         Returns:
@@ -121,16 +136,23 @@ class Todo(caldav.Todo):
     ) -> None:
         """
         Args:
-            completion_timestamp (Union[datetime.datetime, None], optional) : Argument
+            completion_timestamp (Union[datetime.datetime, None], optional): Argument
                 (default is None)
-            handle_rrule (bool, optional) : Argument
+            handle_rrule (bool, optional): Argument
                 (default is True)
-            rrule_mode (Literal['safe', 'this_and_future'], optional) : Argument
+            rrule_mode (Literal['safe', 'this_and_future'], optional): Argument
                 (default is 'safe')
 
         """
         super().complete(completion_timestamp, handle_rrule, rrule_mode)
         print("Task completed.")
+
+    def isTodo(self) -> bool:
+        """
+        Returns:
+            bool: whether this object is a VTODO or not (i.e. an event or journal).
+        """
+        return isinstance(self.icalendar_component, icalendar.cal.Todo)
 
     def __str__(self) -> str:
         """

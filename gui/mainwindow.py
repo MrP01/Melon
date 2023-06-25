@@ -22,7 +22,7 @@ class GuiMelon(Melon):
     def addOrUpdateTask(self, todo: Todo):
         """
         Args:
-            todo (Todo) : Argument
+            todo (Todo): Argument
         """
         assert self.tasklistView is not None
         uid = todo.uid
@@ -76,7 +76,7 @@ class MainWindow(QWidget):
         """
         Args:
         """
-        self.melon.startup()
+        self.melon.init()
         self.tasklistView.sortItems()
         self.calendarlistView.populate(self.melon.calendars.values())
         # QTimer.singleShot(200, self.sync)
@@ -94,7 +94,7 @@ class MainWindow(QWidget):
     def closeEvent(self, event: QCloseEvent) -> None:
         """
         Args:
-            event (QCloseEvent) : Argument
+            event (QCloseEvent): Argument
 
         """
         self.melon.store()
@@ -103,7 +103,7 @@ class MainWindow(QWidget):
     def calendarListClicked(self, item: QListWidgetItem):
         """
         Args:
-            item (QListWidgetItem) : Argument
+            item (QListWidgetItem): Argument
         """
         userData = item.data(Qt.ItemDataRole.UserRole)
         if userData and userData["is-special"] and userData["specialty"] == "all":
@@ -114,7 +114,7 @@ class MainWindow(QWidget):
     def keyPressEvent(self, event: QKeyEvent):
         """
         Args:
-            event (QKeyEvent) : Argument
+            event (QKeyEvent): Argument
         """
         # print("Key Event", event)
         if event.modifiers() == Qt.KeyboardModifier.ControlModifier:
@@ -133,7 +133,7 @@ class MainWindow(QWidget):
     def showInfoMessage(self, msg: str):
         """
         Args:
-            msg (str) : Argument
+            msg (str): Argument
         """
         self.messageLabel.setText(msg)
         self.messageLabel.setHidden(False)

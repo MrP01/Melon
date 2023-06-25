@@ -12,6 +12,7 @@ logging.basicConfig(level=logging.INFO)
 
 if __name__ == "__main__":
     app = QApplication()
+    app.setApplicationName("Melon")
     window = MainWindow()
     window.buildUI()
     window.start()

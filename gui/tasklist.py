@@ -36,7 +36,7 @@ class TaskListView(QListWidget):
     def mouseDoubleClickEvent(self, event: QMouseEvent) -> None:
         """
         Args:
-            event (QMouseEvent) : Argument
+            event (QMouseEvent): Argument
         """
         item = self.itemAt(event.position().toPoint())
         self.removeItemWidget(item)
@@ -45,7 +45,7 @@ class TaskListView(QListWidget):
     def addTask(self, task: Todo) -> OrderableTaskItem:
         """
         Args:
-            task (Todo) : Argument
+            task (Todo): Argument
 
         Returns:
             (MyListWidgetItem):
@@ -60,7 +60,7 @@ class TaskListView(QListWidget):
     def attachTaskWidget(self, item):
         """
         Args:
-            item : Argument
+            item: Argument
         """
         widget = TaskOverlayWidget(parent=self)
         widget.completionBtn.clicked.connect(lambda: self.completeTask(item))
@@ -69,7 +69,7 @@ class TaskListView(QListWidget):
     def completeTask(self, item: QListWidgetItem):
         """
         Args:
-            item (QListWidgetItem) : Argument
+            item (QListWidgetItem): Argument
         """
         task: Todo = item.data(UserRole)
         task.complete()
@@ -89,7 +89,7 @@ class TaskListView(QListWidget):
     def setCalendarFilter(self, calendarName):
         """
         Args:
-            calendarName : Argument
+            calendarName: Argument
         """
         for i in range(self.count()):
             item = self.item(i)
@@ -110,7 +110,7 @@ class TaskListView(QListWidget):
     def onItemChange(self, item: QListWidgetItem):
         """
         Args:
-            item (QListWidgetItem) : Argument
+            item (QListWidgetItem): Argument
         """
         todo: Todo = item.data(UserRole)
         text = item.text()
@@ -149,7 +149,7 @@ class TaskListView(QListWidget):
     def keyPressEvent(self, event: QKeyEvent) -> None:
         """
         Args:
-            event (QKeyEvent) : Argument
+            event (QKeyEvent): Argument
         """
         # if event.key() == Qt.Key.Key_Plus:
         #     self.addEmptyTask()
@@ -158,7 +158,7 @@ class TaskListView(QListWidget):
     def delegateEditorDestroyed(self, index):
         """
         Args:
-            index : Argument
+            index: Argument
         """
         if self.itemWidget(self.itemFromIndex(index)) is None:
             self.attachTaskWidget(self.itemFromIndex(index))

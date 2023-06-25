@@ -17,7 +17,7 @@ class OrderableTaskItem(QListWidgetItem):
         """This method will by called by QListWidget.sort() to compare items to one another.
 
         Args:
-            other (QListWidgetItem) : Argument
+            other (QListWidgetItem): Argument
         """
         if self.data(Qt.ItemDataRole.EditRole) == ADD_TASK_EDIT_ROLE:
             return False
@@ -42,7 +42,7 @@ class CompletionPushButton(QPushButton):
     def __init__(self, parent: QWidget):
         """
         Args:
-            parent (QWidget) : Argument
+            parent (QWidget): Argument
         """
         super().__init__(parent=parent)
         self.okIcon = QIcon("gui/assets/complete.png")
@@ -51,7 +51,7 @@ class CompletionPushButton(QPushButton):
     def paintEvent(self, event: QPaintEvent) -> None:
         """
         Args:
-            event (QPaintEvent) : Argument
+            event (QPaintEvent): Argument
         """
         painter = QPainter(self)
         delta = 2 if self.isDown() else 0
