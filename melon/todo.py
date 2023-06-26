@@ -115,8 +115,8 @@ class Todo(caldav.Todo):
             int: the priority of the task, an integer between 1 and 9,
                  where 1 corresponds to the highest and 9 to the lowest priority
         """
-        value = self.icalendar_component.get("priority")
-        return int(value) if value is not None else 9
+        value = self.vtodo.contents.get("priority")
+        return int(value[0].value) if value is not None else 9  # type: ignore
 
     def isIncomplete(self) -> bool:
         """

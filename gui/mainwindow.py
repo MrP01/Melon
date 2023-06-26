@@ -1,5 +1,4 @@
 """This submodule defines the main window of our application."""
-
 from PySide6 import QtWidgets
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QCloseEvent, QKeyEvent

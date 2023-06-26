@@ -48,6 +48,35 @@
   \section{Problem Introduction}
   \label{sec:introduction}
 
+  \section{Runtime Performance}
+  \begin{minted}{python}
+In [1]: %timeit str(t.icalendar_component["uid"])
+  122 µs ± 1.06 µs per loop (7 runs, 10,000 loops each)
+In [2]: %timeit t.vtodo.contents["uid"][0].value
+  355 ns ± 7.14 ns per loop (7 runs, 1,000,000 loops each)
+In [3]: %timeit t.vobject_instance.contents["vtodo"][0].contents["uid"][0].value
+  296 ns ± 7.06 ns per loop (7 runs, 1,000,000 loops each)
+In [4]: %timeit t._vobject_instance.contents["vtodo"][0].contents["uid"][0].value
+  208 ns ± 23.7 ns per loop (7 runs, 10,000,000 loops each)
+  \end{minted}
+
+  \begin{table}[H]
+    \centering
+    \caption{Profile obtained by running \mintinline{bash}{./main.py --profile | grep todo.py}.}
+    \begin{tabular}{rrrrrll}
+      16958 & 0.008 & 0.000 & 0.939 & 0.000 & todo.py:36  & vtodo        \\
+      32475 & 0.047 & 0.000 & 0.705 & 0.000 & todo.py:96  & uid          \\
+      856   & 0.003 & 0.000 & 0.579 & 0.001 & todo.py:26  & upgrade      \\
+      117   & 0.000 & 0.000 & 0.489 & 0.004 & todo.py:111 & priority     \\
+      417   & 0.001 & 0.000 & 0.461 & 0.001 & todo.py:121 & isIncomplete \\
+      5512  & 0.003 & 0.000 & 0.278 & 0.000 & todo.py:45  & summary      \\
+      856   & 0.002 & 0.000 & 0.112 & 0.000 & todo.py:21  & \_\_init\_\_ \\
+      1363  & 0.006 & 0.000 & 0.024 & 0.000 & todo.py:164 & \_\_lt\_\_   \\
+      7844  & 0.004 & 0.000 & 0.009 & 0.000 & todo.py:61  & dueDate      \\
+      2605  & 0.001 & 0.000 & 0.003 & 0.000 & todo.py:85  & dueTime      \\
+    \end{tabular}
+  \end{table}
+
   \pagebreak
   \printbibliography
   \printnoidxglossary[type=acronym]

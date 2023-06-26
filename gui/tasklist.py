@@ -29,6 +29,7 @@ class TaskListView(QtWidgets.QListWidget):
         self.setItemDelegate(delegate)
         delegate.editorDestroyed.connect(self.delegateEditorDestroyed)
         self.setDragEnabled(True)
+        self.setVerticalScrollMode(QtWidgets.QListWidget.ScrollMode.ScrollPerPixel)
         self.itemChanged.connect(self.onItemChange)
         self._currentCalendarName = None
         self.addAddButton()
@@ -97,6 +98,7 @@ class TaskListView(QtWidgets.QListWidget):
                 item.setHidden(item.data(UserRole).calendarName != calendarName)
             else:
                 item.setHidden(False)
+        self.sortItems()
         self._currentCalendarName = calendarName
 
     def clearCalendarFilter(self):
