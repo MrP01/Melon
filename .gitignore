@@ -6,3 +6,8 @@ stuff/
 
 build/
 docs/_auto/
+
+
+# Added by cargo
+
+/target
