@@ -1,5 +1,6 @@
 """This module defines how tasks should be rendered in the GUI."""
 import datetime
+from typing import Callable
 
 import dateparser.search
 from PySide6 import QtWidgets
@@ -35,7 +36,18 @@ class TaskItemEditorFactory(QtWidgets.QItemEditorFactory):
         edit.textChanged.connect(self.textChangeHandler(edit, label))
         return edit
 
-    def textChangeHandler(self, edit: QtWidgets.QLineEdit, label: QtWidgets.QLabel):
+    def textChangeHandler(self, edit: QtWidgets.QLineEdit, label: QtWidgets.QLabel) -> Callable:
+        """Returns a handler function for keypress events on the editor.
+        The handler interacts with a timer to prevent computing too frequently.
+
+        Args:
+            edit (QtWidgets.QLineEdit): the lineedit widget
+            label (QtWidgets.QLabel): the label to display information in
+
+        Returns:
+            Callable: the event handler
+        """
+
         def actualHandler():
             text = edit.text()
             print("Edit", text)
@@ -48,7 +60,7 @@ class TaskItemEditorFactory(QtWidgets.QItemEditorFactory):
 
         timer = QTimer()
         timer.setSingleShot(True)
-        timer.setInterval(500)
+        timer.setInterval(800)
         timer.timeout.connect(actualHandler)
 
         def handler():
@@ -129,11 +141,12 @@ class TaskItemDelegate(QtWidgets.QStyledItemDelegate):
             path.addRoundedRect(QRect(rect.x() + 2, rect.y() + 2, 8, 44), 6, 6)
             painter.fillPath(path, QColor(33, 150, 243, 200))
 
-        path = QPainterPath()
-        path.addRoundedRect(QRect(rect.x() + 32 + 14 + 14, rect.y() + 25, len(todo.calendarName) * 8 + 12, 16), 10, 10)
-        painter.drawPath(path)
-        painter.setFont(QFont("Monospace", 9))
-        painter.drawText(rect.translated(32 + 14 + 22, 26), todo.calendarName)
+        if todo.calendarName is not None:
+            path = QPainterPath()
+            path.addRoundedRect(QRect(rect.x() + 60, rect.y() + 25, len(todo.calendarName) * 8 + 12, 16), 10, 10)
+            painter.drawPath(path)
+            painter.setFont(QFont("Monospace", 9))
+            painter.drawText(rect.translated(32 + 14 + 22, 26), todo.calendarName)
 
         painter.restore()
 

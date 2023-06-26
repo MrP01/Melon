@@ -11,7 +11,7 @@ from melon.melon import Melon
 from melon.todo import Todo
 
 from .taskitemdelegate import TaskItemDelegate
-from .taskwidgets import NEW_TASK_TEXT, OrderableTaskItem, TaskOverlayWidget, UserRole
+from .taskwidgets import OrderableTaskItem, TaskOverlayWidget, UserRole
 
 
 class TaskListView(QtWidgets.QListWidget):
@@ -113,6 +113,9 @@ class TaskListView(QtWidgets.QListWidget):
             item (QListWidgetItem): Argument
         """
         todo: Todo = item.data(UserRole)
+        if todo.calendarName is None:
+            raise ValueError("The item's associated todo does not have a calendar.")
+
         text = item.text()
         if "clear" in text:
             todo.dueDate = None
@@ -139,7 +142,7 @@ class TaskListView(QtWidgets.QListWidget):
             print("Please select a calendar first!")
             return
         calendar = self.melon.calendars[self._currentCalendarName]
-        todo = calendar.createTodo(NEW_TASK_TEXT)
+        todo = calendar.createTodo()
         item = self.addTask(todo)
         self.sortItems()
         self.removeItemWidget(item)

@@ -1,5 +1,6 @@
 """This module contains the Calendar class."""
 import logging
+from typing import Iterable
 
 import caldav
 import caldav.lib.url
@@ -7,7 +8,7 @@ import icalendar
 import vobject
 
 from .config import CONFIG_FOLDER
-from .todo import Todo
+from .todo import NEW_TASK_TEXT, Todo
 
 
 class Calendar(caldav.Calendar):
@@ -31,7 +32,7 @@ class Calendar(caldav.Calendar):
             calendar.props,
             **calendar.extra_init_options,
         )
-        self.syncable: caldav.SynchronizableCalendarObjectCollection | None = None
+        self.syncable: Syncable | None = None
 
     def store_to_file(self):
         """Save the calendar objects to a local file on disk, in iCal format."""
@@ -62,11 +63,11 @@ class Calendar(caldav.Calendar):
             todo.icalendar_instance = task
             todo.url = cal_url.join(str(task.subcomponents[0].get("uid")) + ".ics")
             objects.append(todo)
-        cal.syncable = caldav.SynchronizableCalendarObjectCollection(cal, objects, sync_token)
+        cal.syncable = Syncable(cal, objects, sync_token)
         logging.info(f"Calendar {name}: loaded {len(objects)} objects.")
         return cal
 
-    def createTodo(self, summary: str):
+    def createTodo(self, summary: str = NEW_TASK_TEXT):
         """
         Args:
             summary (str): Argument
@@ -87,5 +88,25 @@ class Calendar(caldav.Calendar):
         assert self.syncable is not None
         return {
             "url": str(self.url),
-            "token": self.syncable.sync_token,  # type: ignore
+            "token": self.syncable.sync_token,
         }
+
+
+class Syncable(caldav.SynchronizableCalendarObjectCollection):
+    """The synchronisable collection of CalDAV objects, handling efficient syncs between server and client."""
+
+    calendar: Calendar
+    objects: Iterable[Todo]
+    sync_token: str
+
+    @staticmethod
+    def upgrade(synchronisable: caldav.SynchronizableCalendarObjectCollection) -> "Syncable":
+        """Upgrades the third-party caldav.SynchronizableCalendarObjectCollection to a Syncable
+
+        Args:
+            synchronisable (caldav.SynchronizableCalendarObjectCollection): the original instance
+
+        Returns:
+            (Syncable): the syncable
+        """
+        return Syncable(synchronisable.calendar, synchronisable.objects, synchronisable.sync_token)  # type: ignore

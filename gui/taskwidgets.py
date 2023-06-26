@@ -6,7 +6,6 @@ from PySide6.QtGui import QIcon, QPainter, QPaintEvent
 from melon.todo import Todo
 
 ADD_TASK_EDIT_ROLE = "add-task"
-NEW_TASK_TEXT = "An exciting new task!"
 UserRole = Qt.ItemDataRole.UserRole
 
 
@@ -25,15 +24,7 @@ class OrderableTaskItem(QtWidgets.QListWidgetItem):
             return True
         mine: Todo = self.data(UserRole)
         theirs: Todo = other.data(UserRole)
-        if mine.summary == NEW_TASK_TEXT:
-            return False
-        if theirs.summary == NEW_TASK_TEXT:
-            return True
-        if mine.dueDate is None and theirs.dueDate is not None:
-            return False
-        if theirs.dueDate is None and mine.dueDate is not None:
-            return True
-        return (mine.dueDate, mine.summary) < (theirs.dueDate, theirs.summary)
+        return mine < theirs
 
 
 class CompletionPushButton(QtWidgets.QPushButton):

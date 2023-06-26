@@ -11,7 +11,7 @@ from typing import Iterable
 import caldav
 import caldav.lib.url
 
-from .calendar import Calendar
+from .calendar import Calendar, Syncable
 from .config import CONFIG, CONFIG_FOLDER
 from .todo import Todo
 
@@ -64,7 +64,7 @@ class Melon:
         if not self.calendars:
             self.connect()
         for calendar in self.calendars.values():
-            calendar.syncable = calendar.objects_by_sync_token(load_objects=True)
+            calendar.syncable = Syncable.upgrade(calendar.objects_by_sync_token(load_objects=True))
             self._load_syncable_tasks(calendar)
             logging.info(f"Fetched {len(calendar.syncable)} full objects!")
 

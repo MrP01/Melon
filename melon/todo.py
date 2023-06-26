@@ -8,12 +8,15 @@ import icalendar.cal
 import icalendar.prop
 import vobject
 
+NEW_TASK_TEXT = "An exciting new task!"
+MIDNIGHT = datetime.time(0, 0)
+
 
 class Todo(caldav.Todo):
     """A class representing todos (= tasks), subclassing the caldav.Todo object which in turn stores VTODO data."""
 
-    vobject_instance: vobject.base.Component
-    icalendar_component: icalendar.cal.Todo
+    vobject_instance: vobject.base.Component  # fast access
+    icalendar_component: icalendar.cal.Todo  # slow access, but does more checks
 
     def __init__(self, *args, calendarName: str | None = None, **kwargs):
         """Initialises the base class"""
@@ -22,7 +25,7 @@ class Todo(caldav.Todo):
 
     @staticmethod
     def upgrade(todo: caldav.Todo, calendarName: str) -> "Todo":
-        """A copy constructor
+        """A copy constructor constructing a melon.Todo from a caldav.Todo
 
         Args:
             todo (caldav.Todo): Argument
@@ -32,7 +35,8 @@ class Todo(caldav.Todo):
 
     @property
     def vtodo(self) -> vobject.base.Component:
-        """
+        """Returns the VTODO object stored within me. This is faster than accessing the icalendar_component.
+
         Returns:
             (vobject.base.Component):
         """
@@ -91,11 +95,15 @@ class Todo(caldav.Todo):
 
     @property
     def uid(self) -> str | None:
-        """
+        """This method has to be fast, as it is accessed very frequently according to profiler output.
+        Therefore we use do not use self.vtodo.
+
         Returns:
             (Union[str, None]):
         """
         try:
+            return self._vobject_instance.contents["vtodo"][0].contents["uid"][0].value  # type: ignore
+        except AttributeError:
             return self.vtodo.contents["uid"][0].value  # type: ignore
         except KeyError:
             return
@@ -115,10 +123,9 @@ class Todo(caldav.Todo):
         Returns:
             (bool):
         """
-        return "STATUS:NEEDS-ACTION" in self.data or (
-            not "\nCOMPLETED:" in self.data
-            and not "\nSTATUS:COMPLETED" in self.data
-            and not "\nSTATUS:CANCELLED" in self.data
+        data = self.data
+        return "STATUS:NEEDS-ACTION" in data or (
+            not "\nCOMPLETED:" in data and not "\nSTATUS:COMPLETED" in data and not "\nSTATUS:CANCELLED" in data
         )
 
     def isComplete(self) -> bool:
@@ -153,6 +160,33 @@ class Todo(caldav.Todo):
             bool: whether this object is a VTODO or not (i.e. an event or journal).
         """
         return isinstance(self.icalendar_component, icalendar.cal.Todo)
+
+    def __lt__(self, other: "Todo") -> bool:
+        """Compares two todos in terms of ordering
+
+        Args:
+            other (Todo): the instance to compare with
+
+        Returns:
+            bool: whether self < other
+        """
+        if self.summary == NEW_TASK_TEXT:
+            return False
+        if other.summary == NEW_TASK_TEXT:
+            return True
+        if self.dueDate is None and other.dueDate is not None:
+            return False
+        if other.dueDate is None and self.dueDate is not None:
+            return True
+        return (
+            self.dueDate,
+            self.dueTime or MIDNIGHT,
+            self.summary,
+        ) < (
+            other.dueDate,
+            other.dueTime or MIDNIGHT,
+            other.summary,
+        )
 
     def __str__(self) -> str:
         """
