@@ -48,6 +48,8 @@
   \section{Problem Introduction}
   \label{sec:introduction}
 
+  UIDs are useful because they make collisions very unlikely, which is not to say that these should not be checked, but if two clients are connected that each generated a set of UIDs it is very unlikely to have to do conflict resolving.
+
   \section{Runtime Performance}
   \begin{minted}{python}
 In [1]: %timeit str(t.icalendar_component["uid"])

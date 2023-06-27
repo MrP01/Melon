@@ -6,10 +6,13 @@ melon.startup()
 """
 import json
 import logging
-from typing import Iterable
+from typing import Iterable, Mapping
 
 import caldav
 import caldav.lib.url
+import icalendar
+
+from melon.scheduler import TimeSlot
 
 from .calendar import Calendar, Syncable
 from .config import CONFIG, CONFIG_FOLDER
@@ -126,6 +129,26 @@ class Melon:
         for calendar in self.calendars.values():
             self.syncCalendar(calendar)
 
+    def getTask(self, uid: str) -> Todo:
+        """Returns task with given UID
+
+        Args:
+            uid (str): the Unique Identifier
+
+        Raises:
+            ValueError: when the task could not be found
+
+        Returns:
+            Todo: the Todo with given uid
+        """
+        for calendar in self.calendars.values():
+            if calendar.syncable is None:
+                continue
+            for object in calendar.syncable.objects:
+                if object.uid == uid:
+                    return object
+        raise ValueError(f"Task with UID {uid} not found.")
+
     def findTask(self, string: str) -> Iterable[Todo]:
         """Finds a task given a search query
 
@@ -147,3 +170,24 @@ class Melon:
         Args:
             todo (Todo): Argument
         """
+
+    def exportScheduleAsCalendar(self, scheduling: Mapping[str, TimeSlot]) -> icalendar.Calendar:
+        """A read-only ICS calendar containing scheduled tasks. Can be stored to disk using schedule.to_ical().
+
+        Args:
+            scheduling (Mapping[str, TimeSlot]): Mapping of task UID to TimeSlot
+
+        Returns:
+            icalendar.Calendar: the calendar containing events (time slots) proposed for the completion of tasks
+        """
+        schedule = icalendar.Calendar()
+        for uid, slot in scheduling.items():
+            todo = self.getTask(uid)
+            schedule.add_component(
+                icalendar.Event(
+                    summary=f"Do {todo.summary}",
+                    start=slot.timestamp,
+                    end=slot.timestamp + slot.duration,
+                )
+            )
+        return schedule
