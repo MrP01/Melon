@@ -4,7 +4,7 @@ from typing import Callable
 
 import dateparser.search
 from PySide6 import QtWidgets
-from PySide6.QtCore import QMargins, QModelIndex, QObject, QPersistentModelIndex, QRect, QSize, Qt, QTimer, Signal
+from PySide6.QtCore import QMargins, QModelIndex, QPersistentModelIndex, QRect, QSize, Qt, QThreadPool, QTimer, Signal
 from PySide6.QtGui import QColor, QFont, QPainter, QPainterPath, QPen
 
 from melon.todo import Todo
@@ -16,6 +16,11 @@ ONE_DAY = datetime.timedelta(days=1)
 
 class TaskItemEditorFactory(QtWidgets.QItemEditorFactory):
     """Factory for task item *editors*."""
+
+    def __init__(self) -> None:
+        """Initialise the editor factory, creating a ThreadPool"""
+        super().__init__()
+        self.threadPool = QThreadPool()
 
     def createEditor(self, userType: int, parent: QtWidgets.QWidget) -> QtWidgets.QWidget:
         """
@@ -41,7 +46,7 @@ class TaskItemEditorFactory(QtWidgets.QItemEditorFactory):
         The handler interacts with a timer to prevent computing too frequently.
 
         Args:
-            edit (QtWidgets.QLineEdit): the lineedit widget
+            edit (QtWidgets.QLineEdit): the line edit widget whose events we are catching
             label (QtWidgets.QLabel): the label to display information in
 
         Returns:
@@ -49,6 +54,7 @@ class TaskItemEditorFactory(QtWidgets.QItemEditorFactory):
         """
 
         def actualHandler():
+            """I am called to perform the actual parsing."""
             text = edit.text()
             print("Edit", text)
             results = dateparser.search.search_dates(text)
@@ -61,9 +67,10 @@ class TaskItemEditorFactory(QtWidgets.QItemEditorFactory):
         timer = QTimer()
         timer.setSingleShot(True)
         timer.setInterval(800)
-        timer.timeout.connect(actualHandler)
+        timer.timeout.connect(lambda: self.threadPool.start(actualHandler))
 
         def handler():
+            """I am called on each keystroke of the QLineEdit."""
             timer.start()
 
         return handler
@@ -74,10 +81,10 @@ class TaskItemDelegate(QtWidgets.QStyledItemDelegate):
 
     editorDestroyed = Signal(QModelIndex)
 
-    def __init__(self, parent: QObject | None = None):
+    def __init__(self, parent):
         """
         Args:
-            parent (Union[QObject, None], optional): Argument
+            parent (QObject | None, optional): Argument
                 (default is None)
         """
         super().__init__(parent)
