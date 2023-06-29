@@ -3,11 +3,7 @@
 __pycache__/
 stuff/
 .venv
-
+.coverage
 build/
 docs/_auto/
-
-
-# Added by cargo
-
 /target
