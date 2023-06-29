@@ -17,6 +17,7 @@ dill = "^0.3.6"
 interrogate = "^1.5.0"
 sphinx = "^7.0.1"
 recommonmark = "^0.7.1"
+pytest = "^7.4.0"
 
 [tool.black]
 line-length = 120
@@ -26,9 +27,12 @@ line-length = 120
 select = ["I001"]
 exclude = [".git", "**/__pycache__"]
 
+[tool.nitpick]
+style = ["github://MrP01/lint-me-now/nitpick-base-style.toml", "github://MrP01/lint-me-now/nitpick-python-style.toml"]
+
+[tool.interrogate]
+exclude = ["stuff"]
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
-
-[tool.nitpick]
-style = ["github://MrP01/lint-me-now/nitpick-base-style.toml", "github://MrP01/lint-me-now/nitpick-python-style.toml"]

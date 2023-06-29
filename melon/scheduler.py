@@ -24,16 +24,18 @@ class AvailabilityManager:
             tasks (Iterable[Task]): list of tasks to schedule
 
         Yields:
-            Iterator[Iterable[tuple[str, TimeSlot]]]: pairs of (UID, TimeSlot), returned in chronological order
+            Iterator[tuple[str, TimeSlot]]: pairs of (UID, TimeSlot), returned in chronological order
         """
-        stamp = datetime.datetime.now()
+        stamp = datetime.datetime.combine(datetime.date.today(), self.startOfDay)
         for task in tasks:
-            if (stamp + task.duration).time() > self.endOfDay:
+            duration = datetime.timedelta(hours=task.duration)
+            if (stamp + duration).time() > self.endOfDay:
                 stamp = (stamp + datetime.timedelta(days=1)).replace(
                     hour=self.startOfDay.hour,
                     minute=self.startOfDay.minute,
                 )
-            yield (task.uid, TimeSlot(stamp, task.duration))
+            yield (task.uid, TimeSlot(stamp, duration.total_seconds() / 3600))
+            stamp += duration
 
     def isAvailable(self, timeslot: TimeSlot) -> bool:
         """Returns whether the given timeslot could fully fit within the designated timeframe.
@@ -61,7 +63,7 @@ class MCMCScheduler:
         self.state = tuple(range(len(self.tasks)))  # initialise in order
         self.temperature = 1.0
 
-    def permuteState(self) -> tuple[int]:
+    def permuteState(self) -> Iterable[int]:
         """Proposes a new state to use instead of the old state.
 
         Returns:
@@ -99,4 +101,4 @@ class MCMCScheduler:
         Returns:
             Mapping[str, TimeSlot]: the resulting map of Tasks to TimeSlots
         """
-        return {"uid-123": TimeSlot()}
+        return {"uid-123": TimeSlot(datetime.datetime.now(), 1.0)}
