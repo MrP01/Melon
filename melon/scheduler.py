@@ -1,12 +1,43 @@
 """The scheduler algorithm"""
-import collections
-import datetime
+import dataclasses
 import math
 import random
+from datetime import date, datetime, time, timedelta
 from typing import Iterable, Mapping
 
-Task = collections.namedtuple("Task", ["uid", "duration", "priority", "location"])
-TimeSlot = collections.namedtuple("TimeSlot", ["timestamp", "duration"])
+
+@dataclasses.dataclass
+class Task:
+    """Slim struct representing a task"""
+
+    uid: str  # unique identifier of the task
+    duration: float  # estimated, in hours
+    priority: int  # between 1 and 9
+    location: str  # string indicating the location
+
+
+@dataclasses.dataclass
+class TimeSlot:
+    """Slim struct representing a time slot, so an event consisting of a start and end date."""
+
+    timestamp: datetime
+    duration: float  # in hours
+
+    @property
+    def timedelta(self) -> timedelta:
+        """
+        Returns:
+            timedelta: the duration as a datetime.timedelta instance
+        """
+        return timedelta(hours=self.duration)
+
+    @property
+    def end(self) -> datetime:
+        """
+        Returns:
+            datetime: the end timestamp of this time slot
+        """
+        return self.timestamp + self.timedelta
 
 
 class AvailabilityManager:
@@ -14,8 +45,30 @@ class AvailabilityManager:
 
     def __init__(self) -> None:
         """Initialises the availability manager according to defaults."""
-        self.startOfDay = datetime.time(10, 0)
-        self.endOfDay = datetime.time(23, 59)
+        self.startOfDay = time(10, 0)  # start at 10am
+        self.defaultDayLength = 14  # going all the way to 2am
+
+    def startingSlot(self) -> TimeSlot:
+        """Starting slot, starting at 10am today
+
+        Returns:
+            TimeSlot: the first working slot
+        """
+        return TimeSlot(datetime.combine(date.today(), self.startOfDay), self.defaultDayLength)
+
+    def generateNextSlot(self, previous: TimeSlot) -> TimeSlot:
+        """Following a daily schedule, returns the next possible working slot
+
+        Args:
+            previous (TimeSlot): the previous working slot
+
+        Returns:
+            TimeSlot: the next working slot
+        """
+        return TimeSlot(
+            datetime.combine(previous.timestamp.date() + timedelta(days=1), self.startOfDay),
+            self.defaultDayLength,
+        )
 
     def spreadTasks(self, tasks: Iterable[Task]) -> Iterable[tuple[str, TimeSlot]]:
         """Spreads the given list of tasks across the available slots in the calendar, in order.
@@ -26,16 +79,20 @@ class AvailabilityManager:
         Yields:
             Iterator[tuple[str, TimeSlot]]: pairs of (UID, TimeSlot), returned in chronological order
         """
-        stamp = datetime.datetime.combine(datetime.date.today(), self.startOfDay)
+        slot = self.startingSlot()
+        stamp = slot.timestamp
         for task in tasks:
-            duration = datetime.timedelta(hours=task.duration)
-            if (stamp + duration).time() > self.endOfDay:
-                stamp = (stamp + datetime.timedelta(days=1)).replace(
-                    hour=self.startOfDay.hour,
-                    minute=self.startOfDay.minute,
+            if task.duration > self.defaultDayLength:
+                raise ValueError(
+                    "You are trying to schedule a task longer than any working slot."
+                    "Split it into smaller chunks! Automatic splitting is not supported."
                 )
-            yield (task.uid, TimeSlot(stamp, duration.total_seconds() / 3600))
-            stamp += duration
+            taskDuration = timedelta(hours=task.duration)
+            if stamp + taskDuration > slot.end:
+                slot = self.generateNextSlot(slot)
+                stamp = slot.timestamp
+            yield (task.uid, TimeSlot(stamp, taskDuration.total_seconds() / 3600))
+            stamp += taskDuration
 
     def isAvailable(self, timeslot: TimeSlot) -> bool:
         """Returns whether the given timeslot could fully fit within the designated timeframe.
@@ -52,6 +109,8 @@ class AvailabilityManager:
 class MCMCScheduler:
     """MCMC class to schedule tasks to events in a calendar."""
 
+    State = tuple[int, ...]  # using literal ellipsis to indicate a homogenous tuple of ints
+
     def __init__(self, tasks: list[Task]) -> None:
         """Initialises the MCMC scheduler, working on a set of pre-defined tasks.
 
@@ -63,26 +122,26 @@ class MCMCScheduler:
         self.state = tuple(range(len(self.tasks)))  # initialise in order
         self.temperature = 1.0
 
-    def permuteState(self) -> Iterable[int]:
+    def permuteState(self) -> State:
         """Proposes a new state to use instead of the old state.
 
         Returns:
-            tuple[int]: the new state, a list of indices within self.tasks representing traversal order
+            State: the new state, a list of indices within self.tasks representing traversal order
         """
         return (1, 2, 3)
 
-    def computeEnergy(self, state: tuple[int]) -> float:
+    def computeEnergy(self, state: State) -> float:
         """For the given state, compute an MCMC energy (the lower, the better)
 
         Args:
-            state (tuple[int]): the state of the MCMC algorithm
+            state (State): the state of the MCMC algorithm
 
         Returns:
             float: the energy
         """
-        spread = dict(self.availability.spreadTasks([self.tasks[i] for i in state]))
+        spread = list(self.availability.spreadTasks([self.tasks[i] for i in state]))
         allOnTime = True  # TODO: check with due date
-        return max(slot.timestamp + slot.duration for uid, slot in spread.items())
+        return (spread[-1][1].end - spread[0][1].timestamp).total_seconds() / 3600
 
     def mcmcSweep(self):
         """Performs a full MCMC sweep"""
@@ -101,4 +160,4 @@ class MCMCScheduler:
         Returns:
             Mapping[str, TimeSlot]: the resulting map of Tasks to TimeSlots
         """
-        return {"uid-123": TimeSlot(datetime.datetime.now(), 1.0)}
+        return {"uid-123": TimeSlot(datetime.now(), 1.0)}

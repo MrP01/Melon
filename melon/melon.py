@@ -183,11 +183,5 @@ class Melon:
         schedule = icalendar.Calendar()
         for uid, slot in scheduling.items():
             todo = self.getTask(uid)
-            schedule.add_component(
-                icalendar.Event(
-                    summary=f"Do {todo.summary}",
-                    start=slot.timestamp,
-                    end=slot.timestamp + slot.duration,
-                )
-            )
+            schedule.add_component(icalendar.Event(summary=todo.summary, start=slot.timestamp, end=slot.end))
         return schedule

@@ -55,3 +55,11 @@ repos:
     hooks:
       - id: interrogate
         args: [--quiet, --fail-under=95]
+  - repo: local
+    hooks:
+      - id: pytest-check
+        name: pytest-check
+        entry: pytest
+        language: system
+        pass_filenames: false
+        always_run: true

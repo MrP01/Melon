@@ -50,6 +50,21 @@
 
   UIDs are useful because they make collisions very unlikely, which is not to say that these should not be checked, but if two clients are connected that each generated a set of UIDs it is very unlikely to have to do conflict resolving.
 
+  We recommend usage with \texttt{xandikos}, a version-controlled DAV server, capable of syncing calendars (events, todos and journals) and contacts.
+
+  \section{Code Quality}
+  \subsection{Formatting}
+  \subsection{Docstrings}
+  \subsection{Documentation}
+  \subsection{Tests}
+  \subsection{Coverage}
+  \subsection{Type Checking}
+  Using \texttt{pyright} instead of \texttt{mypy} as it is much faster.
+  \subsection{Using Appropriate Language Features}
+  Using \texttt{autoflake} and \texttt{pyupgrade}
+  \subsection{Maintaining Code Quality}
+  Using \texttt{pre-commit} and GitHub Actions CI/CD.
+
   \section{Runtime Performance}
   \begin{minted}{python}
 In [1]: %timeit str(t.icalendar_component["uid"])
