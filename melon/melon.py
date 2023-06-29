@@ -4,18 +4,19 @@ the main point of contact for users of this package. It can be initialised like 
 melon = Melon()
 melon.startup()
 """
+import datetime
 import json
 import logging
+import uuid
 from typing import Iterable, Mapping
 
 import caldav
 import caldav.lib.url
 import icalendar
 
-from melon.scheduler import TimeSlot
-
 from .calendar import Calendar, Syncable
 from .config import CONFIG, CONFIG_FOLDER
+from .scheduler import MCMCScheduler, TimeSlot
 from .todo import Todo
 
 
@@ -129,6 +130,20 @@ class Melon:
         for calendar in self.calendars.values():
             self.syncCalendar(calendar)
 
+    def allTasks(self) -> Iterable[Todo]:
+        """Returns an iterable of all tasks in all calendars as a single list
+
+        Yields:
+            Iterator[Iterable[Todo]]: iterator of all tasks
+        """
+        for calendar in self.calendars.values():
+            if calendar.syncable is None:
+                continue
+            for object in calendar.syncable.objects:
+                if object.uid is None or not object.isTodo():
+                    continue
+                yield object
+
     def getTask(self, uid: str) -> Todo:
         """Returns task with given UID
 
@@ -141,12 +156,9 @@ class Melon:
         Returns:
             Todo: the Todo with given uid
         """
-        for calendar in self.calendars.values():
-            if calendar.syncable is None:
-                continue
-            for object in calendar.syncable.objects:
-                if object.uid == uid:
-                    return object
+        for object in self.allTasks():
+            if object.uid == uid:
+                return object
         raise ValueError(f"Task with UID {uid} not found.")
 
     def findTask(self, string: str) -> Iterable[Todo]:
@@ -158,12 +170,9 @@ class Melon:
         Returns:
             Iterable[Todo]: the generated search results.
         """
-        for calendar in self.calendars.values():
-            if calendar.syncable is None:
-                continue
-            for object in calendar.syncable.objects:
-                if string in object.data and object.isTodo():
-                    yield object
+        for object in self.allTasks():
+            if string in object.data and object.isTodo():
+                yield object
 
     def addOrUpdateTask(self, todo: Todo):
         """
@@ -181,7 +190,37 @@ class Melon:
             icalendar.Calendar: the calendar containing events (time slots) proposed for the completion of tasks
         """
         schedule = icalendar.Calendar()
+        schedule.add("prodid", "-//Melon//example.org//")
+        schedule.add("version", "2.0")
+        N = 0
         for uid, slot in scheduling.items():
+            print("Adding", uid)
             todo = self.getTask(uid)
-            schedule.add_component(icalendar.Event(summary=todo.summary, start=slot.timestamp, end=slot.end))
+            event = icalendar.Event(summary=todo.summary)
+            event.add("dtstart", slot.timestamp)
+            event.add("dtend", slot.end)
+            event.add("dtstamp", datetime.datetime.now())
+            event.add("uid", uuid.uuid4())
+            schedule.add_component(event)
+            N += 1
+            if N > 4:
+                break
         return schedule
+
+    def scheduleAllAndExport(self, file: str):
+        """Runs the scheduler on all tasks and exports as an ICS file.
+
+        Args:
+            file (str): filesystem path that the ics file should be exported to
+        """
+        logging.info("Initialising scheduler.")
+        scheduler = MCMCScheduler(list(map(Todo.toTask, self.allTasks())))
+        logging.info("Scheduling now.")
+        schedule = scheduler.schedule()
+        logging.info("Exporting.")
+        export = self.exportScheduleAsCalendar(schedule)
+        logging.info("Export calendar created.")
+        print(export.to_ical().decode().replace("\r\n", "\n"))
+        with open(file, "wb") as f:
+            f.write(export.to_ical())
+        logging.info("Finished export.")

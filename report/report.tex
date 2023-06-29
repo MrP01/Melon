@@ -52,6 +52,12 @@
 
   We recommend usage with \texttt{xandikos}, a version-controlled DAV server, capable of syncing calendars (events, todos and journals) and contacts.
 
+  \subsection{Usage}
+  % TODO: describe installation, etc., running main.py
+  Use \texttt{invoke -l} to list all available tasks.
+
+  Is platform-independent, for example due to the usage of \texttt{pathlib.Path}.
+
   \section{Code Quality}
   \subsection{Formatting}
   \subsection{Docstrings}
@@ -61,7 +67,8 @@
   \subsection{Type Checking}
   Using \texttt{pyright} instead of \texttt{mypy} as it is much faster.
   \subsection{Using Appropriate Language Features}
-  Using \texttt{autoflake} and \texttt{pyupgrade}
+  Using \texttt{autoflake} and \texttt{pyupgrade}.
+  Used \texttt{logging}.
   \subsection{Maintaining Code Quality}
   Using \texttt{pre-commit} and GitHub Actions CI/CD.
 

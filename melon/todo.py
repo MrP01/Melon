@@ -8,6 +8,8 @@ import icalendar.cal
 import icalendar.prop
 import vobject
 
+from melon.scheduler import Task
+
 NEW_TASK_TEXT = "An exciting new task!"
 MIDNIGHT = datetime.time(0, 0)
 
@@ -160,6 +162,15 @@ class Todo(caldav.Todo):
             bool: whether this object is a VTODO or not (i.e. an event or journal).
         """
         return isinstance(self.icalendar_component, icalendar.cal.Todo)
+
+    def toTask(self) -> Task:
+        """Converts this Todo into the scheduler-compatible Task struct.
+
+        Returns:
+            Task: a melon.scheduler.Task
+        """
+        assert self.uid is not None
+        return Task(self.uid, 1, self.priority, "work")
 
     def __lt__(self, other: "Todo") -> bool:
         """Compares two todos in terms of ordering

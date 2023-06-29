@@ -1,6 +1,6 @@
 """This submodule defines the main window of our application."""
 from PySide6 import QtWidgets
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QThreadPool
 from PySide6.QtGui import QCloseEvent, QKeyEvent
 
 from melon.melon import Melon
@@ -48,6 +48,7 @@ class MainWindow(QtWidgets.QWidget):
         """Initialises the main window."""
         super().__init__()
         self.melon = GuiMelon()
+        self.threadPool = QThreadPool()
         self.setWindowTitle("Melon UI")
 
     def buildUI(self):
@@ -125,6 +126,8 @@ class MainWindow(QtWidgets.QWidget):
                 self.calendarlistView.setCurrentRow(0)
             elif event.key() == Qt.Key.Key_Plus:
                 self.tasklistView.addEmptyTask()
+            elif event.key() == Qt.Key.Key_Return:
+                self.threadPool.start(self.melon.scheduleAllAndExport)
         # if Qt.Key.Key_A <= event.key() <= Qt.Key.Key_Z:
         #     self.searchWidget.setFocus()
         return super().keyPressEvent(event)

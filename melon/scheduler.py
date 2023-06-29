@@ -134,7 +134,7 @@ class MCMCScheduler:
         """For the given state, compute an MCMC energy (the lower, the better)
 
         Args:
-            state (State): the state of the MCMC algorithm
+            state (State): state of the MCMC algorithm
 
         Returns:
             float: the energy
@@ -160,4 +160,5 @@ class MCMCScheduler:
         Returns:
             Mapping[str, TimeSlot]: the resulting map of Tasks to TimeSlots
         """
-        return {"uid-123": TimeSlot(datetime.now(), 1.0)}
+        # return {"uid-123": TimeSlot(datetime.now(), 1.0)}
+        return dict(self.availability.spreadTasks([self.tasks[i] for i in self.state]))
