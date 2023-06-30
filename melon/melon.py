@@ -144,6 +144,11 @@ class Melon:
                     continue
                 yield object
 
+    def allIncompleteTasks(self) -> Iterable[Todo]:
+        for todo in self.allTasks():
+            if todo.isIncomplete():
+                yield todo
+
     def getTask(self, uid: str) -> Todo:
         """Returns task with given UID
 
@@ -192,19 +197,15 @@ class Melon:
         schedule = icalendar.Calendar()
         schedule.add("prodid", "-//Melon//example.org//")
         schedule.add("version", "2.0")
-        N = 0
+        todos = {t.uid: t for t in self.allTasks()}
         for uid, slot in scheduling.items():
             print("Adding", uid)
-            todo = self.getTask(uid)
-            event = icalendar.Event(summary=todo.summary)
+            event = icalendar.Event(summary=todos[uid].summary)
             event.add("dtstart", slot.timestamp)
             event.add("dtend", slot.end)
             event.add("dtstamp", datetime.datetime.now())
             event.add("uid", uuid.uuid4())
             schedule.add_component(event)
-            N += 1
-            if N > 4:
-                break
         return schedule
 
     def scheduleAllAndExport(self, file: str):
@@ -214,13 +215,13 @@ class Melon:
             file (str): filesystem path that the ics file should be exported to
         """
         logging.info("Initialising scheduler.")
-        scheduler = MCMCScheduler(list(map(Todo.toTask, self.allTasks())))
-        logging.info("Scheduling now.")
+        scheduler = MCMCScheduler(list(map(Todo.toTask, self.allIncompleteTasks())))
+        logging.info(f"Scheduling {len(scheduler.tasks)} now.")
         schedule = scheduler.schedule()
         logging.info("Exporting.")
         export = self.exportScheduleAsCalendar(schedule)
         logging.info("Export calendar created.")
-        print(export.to_ical().decode().replace("\r\n", "\n"))
+        # print(export.to_ical().decode().replace("\r\n", "\n"))
         with open(file, "wb") as f:
             f.write(export.to_ical())
         logging.info("Finished export.")

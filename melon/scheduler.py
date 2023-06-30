@@ -5,6 +5,8 @@ import random
 from datetime import date, datetime, time, timedelta
 from typing import Iterable, Mapping
 
+INITIAL_TEMPERATURE = 0.2
+
 
 @dataclasses.dataclass
 class Task:
@@ -128,7 +130,13 @@ class MCMCScheduler:
         Returns:
             State: the new state, a list of indices within self.tasks representing traversal order
         """
-        return (1, 2, 3)
+        newState = list(self.state)
+        indexA = random.randrange(len(newState))
+        indexB = random.randrange(len(newState))
+        newState[indexA] = indexB
+        newState[indexB] = indexA
+        # print(newState)
+        return tuple(newState)
 
     def computeEnergy(self, state: State) -> float:
         """For the given state, compute an MCMC energy (the lower, the better)
@@ -137,11 +145,13 @@ class MCMCScheduler:
             state (State): state of the MCMC algorithm
 
         Returns:
-            float: the energy
+            float: the energy / penalty for this state
         """
-        spread = list(self.availability.spreadTasks([self.tasks[i] for i in state]))
+        spread = list(self.availability.spreadTasks(self.tasks[i] for i in state))
+        totalTimePenalty = (spread[-1][1].end - spread[0][1].timestamp).total_seconds() / 3600
+        priorityPenalty = sum(position * self.tasks[state[position]].priority for position in range(len(state)))
         allOnTime = True  # TODO: check with due date
-        return (spread[-1][1].end - spread[0][1].timestamp).total_seconds() / 3600
+        return totalTimePenalty + priorityPenalty
 
     def mcmcSweep(self):
         """Performs a full MCMC sweep"""
@@ -149,7 +159,8 @@ class MCMCScheduler:
         for i in range(100):
             newState = self.permuteState()
             delta = self.computeEnergy(newState) - energy
-            acceptanceProbability = min(math.exp(-delta / self.temperature), 1)
+            acceptanceProbability = min(math.exp(-delta / (energy * self.temperature)), 1)
+            print(f"New state with energy {energy + delta} (delta {delta}), accepted with {acceptanceProbability}.")
             if random.random() < acceptanceProbability:
                 self.state = newState
                 energy += delta
@@ -160,5 +171,7 @@ class MCMCScheduler:
         Returns:
             Mapping[str, TimeSlot]: the resulting map of Tasks to TimeSlots
         """
-        # return {"uid-123": TimeSlot(datetime.now(), 1.0)}
-        return dict(self.availability.spreadTasks([self.tasks[i] for i in self.state]))
+        for k in range(1, 11):
+            self.mcmcSweep()
+            self.temperature = INITIAL_TEMPERATURE * k ** (-1)
+        return dict(self.availability.spreadTasks(self.tasks[i] for i in self.state))

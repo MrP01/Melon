@@ -10,6 +10,7 @@ python = "^3.10, <3.12"
 caldav = "^1.2.1"
 pyside6 = "<6.5"
 dateparser = "^1.1.8"
+numba = "^0.57.1"
 
 [tool.poetry.group.dev.dependencies]
 ipython = "^8.14.0"
