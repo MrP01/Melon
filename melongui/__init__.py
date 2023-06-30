@@ -2,7 +2,7 @@
 In order to start the gui, please follow the standard Qt procedure:
 
 from PySide6 import QtWidgets
-from gui.mainwindow import MainWindow
+from melongui.mainwindow import MainWindow
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication()

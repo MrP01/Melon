@@ -8,3 +8,4 @@ stuff/
 build/
 docs/_auto/
 /target
+/dist

@@ -1,17 +1,24 @@
 [tool.poetry]
 name = "melon"
 version = "0.1.0"
-description = ""
+description = "Schedules Todos into your Calendar"
 authors = ["MrP01 <peter@waldert.at>"]
 readme = "README.md"
+packages = [
+  {include="melon"},
+  {include="melongui"},
+]
 
 [tool.poetry.dependencies]
 python = "^3.10, <3.12"
 caldav = "^1.2.1"
-pyside6 = "<6.5"
 dateparser = "^1.1.8"
-numba = "^0.57.1"
 tqdm = "^4.65.0"
+# numba = "^0.57.1"
+pyside6 = {version="<6.5", optional=true}
+
+[tool.poetry.extras]
+gui = ["pyside6"]
 
 [tool.poetry.group.dev.dependencies]
 ipython = "^8.14.0"
