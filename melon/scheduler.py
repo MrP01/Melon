@@ -5,6 +5,8 @@ import random
 from datetime import date, datetime, time, timedelta
 from typing import Iterable, Mapping
 
+import tqdm
+
 INITIAL_TEMPERATURE = 0.2
 
 
@@ -156,7 +158,7 @@ class MCMCScheduler:
     def mcmcSweep(self):
         """Performs a full MCMC sweep"""
         energy = self.computeEnergy(self.state)
-        for i in range(100):
+        for i in tqdm.tqdm(range(len(self.tasks) ** 2)):
             newState = self.permuteState()
             delta = self.computeEnergy(newState) - energy
             acceptanceProbability = min(math.exp(-delta / (energy * self.temperature)), 1)

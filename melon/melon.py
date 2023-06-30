@@ -58,8 +58,8 @@ class Melon:
         """
         for object in calendar.syncable:
             if "vtodo" in object.vobject_instance.contents:
-                todo = Todo.upgrade(object, calendar.name)
-                self.addOrUpdateTask(todo)
+                assert isinstance(object, Todo)
+                self.addOrUpdateTask(object)
 
     def initialFetch(self):
         """
@@ -77,7 +77,7 @@ class Melon:
         Args:
         """
         for calendar in self.calendars.values():
-            calendar.store_to_file()
+            calendar.storeToFile()
         with open(CONFIG_FOLDER / "synctokens.json", "w") as f:
             json.dump({cal.name: cal.storageObject() for cal in self.calendars.values()}, f)
         logging.info(f"Stored {len(self.calendars)} calendars to disk.")
@@ -93,7 +93,7 @@ class Melon:
             data = json.load(f)
         for file in CONFIG_FOLDER.glob("*.dav"):
             name = file.stem  # filename corresponds to the calendar name
-            self.calendars[name] = Calendar.load_from_file(
+            self.calendars[name] = Calendar.loadFromFile(
                 self.client, self.principal, name, data[name]["token"], data[name]["url"]
             )
         logging.info(f"Loaded {len(self.calendars)} calendars from disk.")
@@ -110,18 +110,13 @@ class Melon:
         else:
             self.load()
 
-    def syncCalendar(self, calendar):
+    def syncCalendar(self, calendar: Calendar):
         """
         Args:
             calendar: Argument
         """
-        updated, deleted = calendar.syncable.sync()
-        calendar.syncable.objects = list(calendar.syncable.objects)
+        calendar.sync()
         self._load_syncable_tasks(calendar)
-        logging.info(
-            f"Synced {calendar.name:48} ({len(updated)} updated and {len(deleted)} deleted entries.) "
-            f"In total, we have {len(calendar.syncable)} objects."
-        )
 
     def syncAll(self):
         """

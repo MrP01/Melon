@@ -161,7 +161,7 @@ class Todo(caldav.Todo):
         Returns:
             bool: whether this object is a VTODO or not (i.e. an event or journal).
         """
-        return isinstance(self.icalendar_component, icalendar.cal.Todo)
+        return "vtodo" in self.vobject_instance.contents
 
     def toTask(self) -> Task:
         """Converts this Todo into the scheduler-compatible Task struct.

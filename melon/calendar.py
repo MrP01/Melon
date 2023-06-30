@@ -34,7 +34,7 @@ class Calendar(caldav.Calendar):
         )
         self.syncable: Syncable | None = None
 
-    def store_to_file(self):
+    def storeToFile(self):
         """Save the calendar objects to a local file on disk, in iCal format."""
         ical = vobject.iCalendar()
         assert self.syncable is not None
@@ -44,7 +44,7 @@ class Calendar(caldav.Calendar):
             ical.serialize(f)  # type: ignore
 
     @staticmethod
-    def load_from_file(client: caldav.DAVClient, principal: caldav.Principal, name: str, sync_token: str, url: str):
+    def loadFromFile(client: caldav.DAVClient, principal: caldav.Principal, name: str, sync_token: str, url: str):
         """
         Args:
             client (caldav.DAVClient): Argument
@@ -90,6 +90,19 @@ class Calendar(caldav.Calendar):
             "url": str(self.url),
             "token": self.syncable.sync_token,
         }
+
+    def sync(self):
+        """Synchronise me"""
+        assert self.name is not None
+        assert self.syncable is not None
+        updated, deleted = self.syncable.sync()
+        self.syncable.objects = [
+            todo if isinstance(todo, Todo) else Todo.upgrade(todo, self.name) for todo in self.syncable.objects
+        ]
+        logging.info(
+            f"Synced {self.name:48} ({len(updated)} updated and {len(deleted)} deleted entries.) "
+            f"In total, we have {len(self.syncable)} objects."
+        )
 
 
 class Syncable(caldav.SynchronizableCalendarObjectCollection):
