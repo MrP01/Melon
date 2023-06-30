@@ -17,7 +17,7 @@ class Task:
     uid: str  # unique identifier of the task
     duration: float  # estimated, in hours
     priority: int  # between 1 and 9
-    location: str  # string indicating the location
+    location: int  # number indicating the location, where 0 is "hybrid"
 
 
 @dataclasses.dataclass

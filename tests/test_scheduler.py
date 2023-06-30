@@ -11,7 +11,7 @@ class TestAvailabilityManager:
         """Tests whether spreading a single task across the calendar works as expected."""
         availability = AvailabilityManager()
         startOfDay = datetime.datetime.combine(datetime.date.today(), availability.startOfDay)
-        spread = list(availability.spreadTasks([Task("1", 3.5, 1, "work")]))
+        spread = list(availability.spreadTasks([Task("1", 3.5, 1, 1)]))
         assert len(spread) == 1
         uid, slot = spread[0]
         assert uid == "1"
@@ -26,9 +26,9 @@ class TestAvailabilityManager:
         spread = list(
             availability.spreadTasks(
                 [
-                    Task("1", 3.5, 1, "work"),
-                    Task("2", 2, 7, "home"),
-                    Task("3", 11, 3, "work"),
+                    Task("1", 3.5, 1, 1),
+                    Task("2", 2, 7, 2),
+                    Task("3", 11, 3, 1),
                 ]
             )
         )

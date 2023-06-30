@@ -170,7 +170,7 @@ class Todo(caldav.Todo):
             Task: a melon.scheduler.Task
         """
         assert self.uid is not None
-        return Task(self.uid, 1, self.priority, "work")
+        return Task(self.uid, 1, self.priority, 0)
 
     def __lt__(self, other: "Todo") -> bool:
         """Compares two todos in terms of ordering
