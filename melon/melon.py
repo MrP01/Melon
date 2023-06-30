@@ -28,17 +28,22 @@ class Melon:
 
     HIDDEN_CALENDARS = ("calendar", None)
 
-    def __init__(self) -> None:
-        """
+    def __init__(
+        self,
+        url=CONFIG["client"]["url"],
+        username=CONFIG["client"]["username"],
+        password=CONFIG["client"]["password"],
+    ) -> None:
+        """Initialises the Melon client
+
         Args:
+            url (str, optional): URL to the CalDAV server. Defaults to CONFIG["client"]["url"].
+            username (str, optional): Username. Defaults to CONFIG["client"]["username"].
+            password (str, optional): Password. Defaults to CONFIG["client"]["password"].
         """
-        self.client = caldav.DAVClient(
-            CONFIG["client"]["url"],
-            username=CONFIG["client"]["username"],
-            password=CONFIG["client"]["password"],
-        )
-        self.principal = None
+        self.client = caldav.DAVClient(url=url, username=username, password=password)
         self.calendars: dict[str, Calendar] = {}
+        self.principal = None
 
     def connect(self):
         """

@@ -5,6 +5,7 @@ __pycache__/
 stuff/
 .venv
 .coverage
+coverage.xml
 build/
 docs/_auto/
 /target

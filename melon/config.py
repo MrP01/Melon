@@ -6,7 +6,10 @@ try:
 except ImportError:
     import tomli as tomllib
 
-CONFIG_FOLDER = pathlib.Path("~").expanduser().resolve() / ".config" / "melon"
+CONFIG_FOLDER = pathlib.Path.home() / ".config" / "melon"
+CONFIG_FOLDER.mkdir(exist_ok=True)
 
-with open(CONFIG_FOLDER / "config.toml", "rb") as f:
-    CONFIG = tomllib.load(f)
+CONFIG = {"client": {"url": "http://localhost:8000/dav/user/calendars/", "username": None, "password": None}}
+if (CONFIG_FOLDER / "config.toml").exists():
+    with open(CONFIG_FOLDER / "config.toml", "rb") as f:
+        CONFIG = tomllib.load(f)
