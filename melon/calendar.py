@@ -96,9 +96,7 @@ class Calendar(caldav.Calendar):
         assert self.name is not None
         assert self.syncable is not None
         updated, deleted = self.syncable.sync()
-        self.syncable.objects = [
-            todo if isinstance(todo, Todo) else Todo.upgrade(todo, self.name) for todo in self.syncable.objects
-        ]
+        self.syncable.upgradeObjects(self.name)
         logging.info(
             f"Synced {self.name:48} ({len(updated)} updated and {len(deleted)} deleted entries.) "
             f"In total, we have {len(self.syncable)} objects."
@@ -112,8 +110,12 @@ class Syncable(caldav.SynchronizableCalendarObjectCollection):
     objects: Iterable[Todo]
     sync_token: str
 
+    def upgradeObjects(self, calendarName: str):
+        """Converts all objects in self.objects to Todos."""
+        self.objects = [todo if isinstance(todo, Todo) else Todo.upgrade(todo, calendarName) for todo in self.objects]
+
     @staticmethod
-    def upgrade(synchronisable: caldav.SynchronizableCalendarObjectCollection) -> "Syncable":
+    def upgrade(synchronisable: caldav.SynchronizableCalendarObjectCollection, calendarName: str) -> "Syncable":
         """Upgrades the third-party caldav.SynchronizableCalendarObjectCollection to a Syncable
 
         Args:
@@ -122,4 +124,6 @@ class Syncable(caldav.SynchronizableCalendarObjectCollection):
         Returns:
             (Syncable): the syncable
         """
-        return Syncable(synchronisable.calendar, synchronisable.objects, synchronisable.sync_token)  # type: ignore
+        syncable = Syncable(synchronisable.calendar, synchronisable.objects, synchronisable.sync_token)  # type: ignore
+        syncable.upgradeObjects(calendarName)
+        return syncable

@@ -2,7 +2,7 @@
 the main point of contact for users of this package. It can be initialised like this:
 
 melon = Melon()
-melon.startup()
+melon.autoInit()
 """
 import datetime
 import json
@@ -66,14 +66,15 @@ class Melon:
                 assert isinstance(object, Todo)
                 self.addOrUpdateTask(object)
 
-    def initialFetch(self):
+    def fetch(self):
         """
         Args:
         """
         if not self.calendars:
             self.connect()
         for calendar in self.calendars.values():
-            calendar.syncable = Syncable.upgrade(calendar.objects_by_sync_token(load_objects=True))
+            assert calendar.name is not None
+            calendar.syncable = Syncable.upgrade(calendar.objects_by_sync_token(load_objects=True), calendar.name)
             self._load_syncable_tasks(calendar)
             logging.info(f"Fetched {len(calendar.syncable)} full objects!")
 
@@ -105,13 +106,13 @@ class Melon:
         for calendar in self.calendars.values():
             self._load_syncable_tasks(calendar)
 
-    def init(self):
+    def autoInit(self):
         """
         Args:
         """
         tokensfile = CONFIG_FOLDER / "synctokens.json"
         if not tokensfile.exists():
-            self.initialFetch()
+            self.fetch()
         else:
             self.load()
 
@@ -145,6 +146,11 @@ class Melon:
                 yield object
 
     def allIncompleteTasks(self) -> Iterable[Todo]:
+        """Returns all incomplete todos
+
+        Yields:
+            Iterator[Iterable[Todo]]: incomplete todos
+        """
         for todo in self.allTasks():
             if todo.isIncomplete():
                 yield todo
@@ -172,8 +178,8 @@ class Melon:
         Args:
             string (str): the search query.
 
-        Returns:
-            Iterable[Todo]: the generated search results.
+        Yields:
+            Iterator[Iterable[Todo]]: the generated search results.
         """
         for object in self.allTasks():
             if string in object.data and object.isTodo():

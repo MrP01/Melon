@@ -76,7 +76,7 @@ class MainWindow(QtWidgets.QWidget):
         """
         Args:
         """
-        self.melon.init()
+        self.melon.autoInit()
         self.tasklistView.sortItems()
         self.calendarlistView.populate(self.melon.calendars.values())
         # QTimer.singleShot(200, self.sync)

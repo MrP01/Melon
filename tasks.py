@@ -24,7 +24,7 @@ def schedule_and_export(ctx: Context, path: str = str(HOME / "Personal" / "task-
         ctx (invoke.Context): Invoke Execution Context
     """
     melon = Melon()
-    melon.init()
+    melon.autoInit()
     melon.scheduleAllAndExport(path)
 
 
@@ -56,8 +56,8 @@ def start_mock_server(ctx: Context):
     time.sleep(1.0)
     response = requests.get("http://localhost:8000/")
     print("Server reachable:", response.ok)
-    melon = Melon()
-    melon.initialFetch()
+    melon = Melon(url="http://localhost:8000/dav/user/calendars/")
+    melon.fetch()
     assert melon.principal is not None
     if "pytest" not in melon.calendars:
         melon.principal.make_calendar("pytest")
