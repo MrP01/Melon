@@ -3,6 +3,10 @@ import dataclasses
 from datetime import datetime, timedelta
 from typing import Mapping
 
+INITIAL_TEMPERATURE = 0.2
+SWEEP_EXPONENT = -1.0
+DAY_LENGTH = 14
+
 
 @dataclasses.dataclass
 class Task:

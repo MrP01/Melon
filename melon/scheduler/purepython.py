@@ -6,10 +6,7 @@ from typing import Iterable, Mapping
 
 import tqdm
 
-from .base import AbstractScheduler, Task, TimeSlot
-
-INITIAL_TEMPERATURE = 0.2
-SWEEP_EXPONENT = -1
+from .base import DAY_LENGTH, INITIAL_TEMPERATURE, SWEEP_EXPONENT, AbstractScheduler, Task, TimeSlot
 
 
 class AvailabilityManager:
@@ -18,7 +15,7 @@ class AvailabilityManager:
     def __init__(self) -> None:
         """Initialises the availability manager according to defaults."""
         self.startOfDay = time(10, 0)  # start at 10am
-        self.defaultDayLength = 14  # going all the way to 2am
+        self.defaultDayLength = DAY_LENGTH  # going all the way to 2am
 
     def startingSlot(self) -> TimeSlot:
         """Starting slot, starting at 10am today
@@ -142,7 +139,7 @@ class MCMCScheduler(AbstractScheduler):
             Mapping[str, TimeSlot]: the resulting map of Tasks to TimeSlots
         """
         for k in range(1, 11):
-            self.mcmcSweep()
             self.temperature = INITIAL_TEMPERATURE * k**SWEEP_EXPONENT
+            self.mcmcSweep()
         print("Final State", self.state)
         return dict(self.availability.spreadTasks(self.tasks[i] for i in self.state))
