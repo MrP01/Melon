@@ -57,6 +57,7 @@ class TestMelon:
         allTasks.sort()
 
     def test_todo_creation(self):
+        """Tests the creation of a Todo with due date."""
         melon = Melon()
         melon.max_calendars = 3
         melon.autoInit()

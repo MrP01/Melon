@@ -1,3 +1,4 @@
+"""A collection of (quality measure) visualisation helpers."""
 import matplotlib.axes
 import matplotlib.pyplot as plt
 import numpy as np

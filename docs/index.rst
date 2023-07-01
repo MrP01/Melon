@@ -1,6 +1,6 @@
-.. SolMate Sun2Plug documentation master file
+.. Documentation master file
 
-Welcome to SolMate Sun2Plug's documentation!
+Welcome to Melon's documentation!
 ============================================
 
 Welcome! This is the auto-generated documentation of Melon, a CalDAV task scheduler!
@@ -11,7 +11,6 @@ Welcome! This is the auto-generated documentation of Melon, a CalDAV task schedu
    :recursive:
 
    melon
-   gui
 
 Indices and tables
 ==================

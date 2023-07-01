@@ -15,9 +15,6 @@ author = "An anonymous MMSC student"
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
-    # "sphinx.ext.napoleon",
-    # "sphinx.ext.todo",
-    # "sphinx.ext.viewcode",
     "recommonmark",
 ]
 autosummary_generate = True
@@ -35,4 +32,9 @@ source_suffix = {
     ".rst": "restructuredtext",
     ".txt": "markdown",
     ".md": "markdown",
+}
+
+latex_elements = {
+    # "preamble": r"\usepackage{prettytex/base}",
+    "printindex": ""
 }

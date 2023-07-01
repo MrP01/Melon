@@ -60,6 +60,15 @@
 
   Is platform-independent, for example due to the usage of \texttt{pathlib.Path}.
 
+  \section{Underlying Theory}
+  \begin{algorithm}[language=pseudo,caption={\centering The Metropolis-Hastings algorithm \parencite{metropolis, hastings}},basicstyle=\footnotesize]
+until convergence, repeat
+  sample a candidate $\vec{x}^*$.
+  set $\vec{x}^{n+1} = \vec{x}^*$ with acceptance probability
+    $p_{\rm accept} = \min\left(1, \e^{-\beta (F^{n+1} - F^n)}\right)\,,$ with $\beta \in \R^+$ a transition factor.
+  Otherwise, let $\vec{x}^{n+1} = \vec{x}^{n}$.
+  \end{algorithm}
+
   \section{Code Quality}
   \subsection{Formatting}
   \subsection{Docstrings}
@@ -85,6 +94,43 @@
 
   interrogate -v einfügen
 
+  \begin{table}[H]
+    \centering
+    \caption{RESULT: PASSED (minimum: 80.0\%, actual: 100.0\%)}
+    \begin{tabular}{lllll}
+      \hline
+      \bf Name                        & \bf Total & \bf Miss & \bf Cover & \bf Cover \\
+      \hline
+      main.py                         & 2         & 0        & 2         & 100\%     \\
+      tasks.py                        & 8         & 0        & 8         & 100\%     \\
+      docs/conf.py                    & 1         & 0        & 1         & 100\%     \\
+      melon/\_\_init\_\_.py           & 1         & 0        & 1         & 100\%     \\
+      melon/calendar.py               & 11        & 0        & 11        & 100\%     \\
+      melon/config.py                 & 1         & 0        & 1         & 100\%     \\
+      melon/melon.py                  & 19        & 0        & 19        & 100\%     \\
+      melon/todo.py                   & 20        & 0        & 20        & 100\%     \\
+      melon/visualise.py              & 3         & 0        & 3         & 100\%     \\
+      melon/scheduler/\_\_init\_\_.py & 1         & 0        & 1         & 100\%     \\
+      melon/scheduler/base.py         & 10        & 0        & 10        & 100\%     \\
+      melon/scheduler/cpp.py          & 3         & 0        & 3         & 100\%     \\
+      melon/scheduler/numba.py        & 8         & 0        & 8         & 100\%     \\
+      melon/scheduler/purepython.py   & 12        & 0        & 12        & 100\%     \\
+      melon/scheduler/rust.py         & 3         & 0        & 3         & 100\%     \\
+      melongui/\_\_init\_\_.py        & 1         & 0        & 1         & 100\%     \\
+      melongui/calendarlist.py        & 6         & 0        & 6         & 100\%     \\
+      melongui/mainwindow.py          & 14        & 0        & 14        & 100\%     \\
+      melongui/taskitemdelegate.py    & 12        & 0        & 12        & 100\%     \\
+      melongui/tasklist.py            & 14        & 0        & 14        & 100\%     \\
+      melongui/taskwidgets.py         & 8         & 0        & 8         & 100\%     \\
+      tests/\_\_init\_\_.py           & 1         & 0        & 1         & 100\%     \\
+      tests/test\_melon.py            & 7         & 0        & 7         & 100\%     \\
+      tests/test\_scheduler.py        & 9         & 0        & 9         & 100\%     \\
+      \hline
+      \bf TOTAL                       & 175       & 0        & 175       & 100.0\%   \\
+      \hline
+    \end{tabular}
+  \end{table}
+
   Screenshot von gnome-calendar
 
   Screenshot GUI
@@ -106,18 +152,43 @@ In [4]: %timeit t._vobject_instance.contents["vtodo"][0].contents["uid"][0].valu
 
   \begin{table}[H]
     \centering
-    \caption{Profile obtained by running \mintinline{bash}{./main.py --profile | grep todo.py}.}
+    \caption{Profile obtained by running \mintinline{bash}{./main.py --profile & grep todo.py}.}
     \begin{tabular}{rrrrrll}
-      16958 & 0.008 & 0.000 & 0.939 & 0.000 & todo.py:36  & vtodo        \\
-      32475 & 0.047 & 0.000 & 0.705 & 0.000 & todo.py:96  & uid          \\
-      856   & 0.003 & 0.000 & 0.579 & 0.001 & todo.py:26  & upgrade      \\
-      117   & 0.000 & 0.000 & 0.489 & 0.004 & todo.py:111 & priority     \\
-      417   & 0.001 & 0.000 & 0.461 & 0.001 & todo.py:121 & isIncomplete \\
-      5512  & 0.003 & 0.000 & 0.278 & 0.000 & todo.py:45  & summary      \\
-      856   & 0.002 & 0.000 & 0.112 & 0.000 & todo.py:21  & \_\_init\_\_ \\
-      1363  & 0.006 & 0.000 & 0.024 & 0.000 & todo.py:164 & \_\_lt\_\_   \\
-      7844  & 0.004 & 0.000 & 0.009 & 0.000 & todo.py:61  & dueDate      \\
-      2605  & 0.001 & 0.000 & 0.003 & 0.000 & todo.py:85  & dueTime      \\
+      \hline
+      ncalls & tottime & percall & cumtime & percall & filename:lineno & function     \\
+      \hline
+      16958  & 0.008   & 0.000   & 0.939   & 0.000   & todo.py:36      & vtodo        \\
+      32475  & 0.047   & 0.000   & 0.705   & 0.000   & todo.py:96      & uid          \\
+      856    & 0.003   & 0.000   & 0.579   & 0.001   & todo.py:26      & upgrade      \\
+      117    & 0.000   & 0.000   & 0.489   & 0.004   & todo.py:111     & priority     \\
+      417    & 0.001   & 0.000   & 0.461   & 0.001   & todo.py:121     & isIncomplete \\
+      5512   & 0.003   & 0.000   & 0.278   & 0.000   & todo.py:45      & summary      \\
+      856    & 0.002   & 0.000   & 0.112   & 0.000   & todo.py:21      & \_\_init\_\_ \\
+      1363   & 0.006   & 0.000   & 0.024   & 0.000   & todo.py:164     & \_\_lt\_\_   \\
+      7844   & 0.004   & 0.000   & 0.009   & 0.000   & todo.py:61      & dueDate      \\
+      2605   & 0.001   & 0.000   & 0.003   & 0.000   & todo.py:85      & dueTime      \\
+    \end{tabular}
+  \end{table}
+
+  \begin{table}[H]
+    \centering
+    \caption{Profile obtained by running \mintinline{bash}{inv profile-scheduler & grep purepython.py}.}
+    \begin{tabular}{rrrrrll}
+      \hline
+      ncalls  & tottime & percall & cumtime & percall & filename:lineno   & function         \\
+      \hline
+      1       & 0.000   & 0.000   & 14.236  & 14.236  & purepython.py:142 & schedule         \\
+      10      & 0.209   & 0.021   & 14.235  & 1.424   & purepython.py:123 & mcmcSweep        \\
+      36010   & 1.144   & 0.000   & 13.784  & 0.000   & purepython.py:97  & computeEnergy    \\
+      2196671 & 5.391   & 0.000   & 11.353  & 0.000   & purepython.py:41  & spreadTasks      \\
+      1006332 & 1.389   & 0.000   & 1.842   & 0.000   & purepython.py:27  & generateNextSlot \\
+      2196610 & 0.798   & 0.000   & 0.972   & 0.000   & purepython.py:108 & <genexpr>        \\
+      2196610 & 0.384   & 0.000   & 0.384   & 0.000   & purepython.py:106 & <genexpr>        \\
+      36000   & 0.082   & 0.000   & 0.217   & 0.000   & purepython.py:83  & permuteState     \\
+      36011   & 0.046   & 0.000   & 0.124   & 0.000   & purepython.py:19  & startingSlot     \\
+      % 61      & 0.000 & 0.000 & 0.000  & 0.000  & purepython.py:152 & <genexpr>
+      % 1       & 0.000 & 0.000 & 0.000  & 0.000  & purepython.py:71  & __init__
+      % 1       & 0.000 & 0.000 & 0.000  & 0.000  & purepython.py:14  & __init__
     \end{tabular}
   \end{table}
 
@@ -128,6 +199,33 @@ In [4]: %timeit t._vobject_instance.contents["vtodo"][0].contents["uid"][0].valu
     \caption{Convergence}
   \end{figure}
 
+  Numba Compilation time: 2.5625428539933637
+
+  \begin{table}[H]
+    \vspace{0.5cm}
+    \centering
+    \caption{Runtime Comparison of the different implementations run on the same scenarios. Each runtime is given as the average over three runs. The finite difference schemes (for the one-dimensional case) were run with $N_x = N_t = 4000$ up to $T = 40$. The spectral method was run using a series expansion of order 15, also up to $T = 40$. The remaining parameters ($\alpha$, $\kappa_0$, $E_0$, etc.) were all identical.}
+    \begin{tblr}{
+      colspec={llr},
+      row{2,3} = {bg=azure9},
+          row{4} = {bg=violet9},
+          row{5} = {bg=cyan9},
+        }
+      \hline
+      \bf Implementation & \bf Language & \bf Runtime / seconds \\
+      \hline
+      MCMCScheduler      & Python & 16.6180 \\
+      NumbaMCMCScheduler & Python & 1.3117 \\
+      \hline
+      RustyMCMCScheduler & Rust & 0.3660 \\
+      \hline
+      CppMCMCScheduler   & C++ & 0.1513
+      \hline
+    \end{tblr}
+    \label{table:runtime}
+  \end{table}
+
+
   \section{Acknowledgements}
   The visualisation code (\texttt{visualise.py}) is adapted from \cite{monte-carlo-todo-lists}.
 
@@ -137,5 +235,6 @@ In [4]: %timeit t._vobject_instance.contents["vtodo"][0].contents["uid"][0].valu
   \printbibliography
   \printnoidxglossary[type=acronym]
 
-  % \appendix
+  \appendix
+  \includepdf[pages=7-29]{../build/docs/latex/melon.pdf}
 \end{document}

@@ -83,7 +83,7 @@ def start_mock_server(ctx: Context):
 @task()
 def plot_convergence(ctx: Context):
     """Plots scheduler convergence to a file."""
-    scheduler = MCMCScheduler(generateDemoTasks())
+    scheduler = MCMCScheduler(generateManyDemoTasks(40))
     scheduler.schedule()
     plotConvergence(np.array(scheduler._log), str(RESULTS / "convergence.pdf"))  # type: ignore
 
@@ -115,3 +115,9 @@ def profile_scheduler(ctx: Context):
         "MCMCScheduler(generateManyDemoTasks(60)).schedule()",
         sort=pstats.SortKey.CUMULATIVE,
     )
+
+
+@task()
+def build_docs(ctx: Context):
+    """Builds documentation using Sphinx."""
+    ctx.run("sphinx-build -M latexpdf docs/ build/docs/")
