@@ -1,6 +1,7 @@
 """The scheduler algorithm"""
 import dataclasses
 from datetime import datetime, timedelta
+import random
 from typing import Mapping
 
 DAY_LENGTH = 14
@@ -60,3 +61,19 @@ class AbstractScheduler:
             Mapping[str, TimeSlot]: the resulting map of Tasks to TimeSlots
         """
         raise NotImplementedError()
+
+
+def generateDemoTasks() -> list[Task]:
+    """Generates a fixed set of demo tasks."""
+    return [
+        Task("1", 3.5, 1, 1),
+        Task("2", 2.0, 7, 2),
+        Task("3", 11.0, 3, 1),
+        Task("4", 2.0, 9, 0),
+        Task("5", 4.0, 5, 1),
+    ]
+
+
+def generateManyDemoTasks(N: int) -> list[Task]:
+    """Generates a larger set of randomly generated demo tasks."""
+    return [Task(str(i), random.randint(1, 20) / 2, random.randint(1, 9), random.randint(0, 2)) for i in range(N)]

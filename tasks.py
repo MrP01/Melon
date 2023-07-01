@@ -13,8 +13,14 @@ from invoke.tasks import task
 from traitlets.config import Config
 
 from melon.melon import Melon
+from melon.scheduler.base import generateDemoTasks, generateManyDemoTasks
+from melon.scheduler.cpp import CppMCMCScheduler
+from melon.scheduler.numba import NumbaMCMCScheduler
 from melon.scheduler.purepython import MCMCScheduler
+from melon.scheduler.rust import RustyMCMCScheduler
 from melon.visualise import plotConvergence
+
+ALL_IMPLEMENTATIONS = (MCMCScheduler, RustyMCMCScheduler, NumbaMCMCScheduler, CppMCMCScheduler)
 
 HOME = pathlib.Path.home()
 RESULTS = pathlib.Path(__file__).parent / "report" / "results"
@@ -70,3 +76,29 @@ def start_mock_server(ctx: Context):
     else:
         print("`pytest` calendar already exists.")
     melon.store()
+
+
+@task()
+def plot_convergence(ctx: Context):
+    """Plots scheduler convergence to a file."""
+    scheduler = MCMCScheduler(generateDemoTasks())
+    scheduler.schedule()
+    plotConvergence(np.array(scheduler._log), str(RESULTS / "convergence.pdf"))  # type: ignore
+
+
+@task
+def compare_runtime(ctx: Context):
+    """Compares runtime of the different scheduling implementations."""
+    tasks = generateManyDemoTasks(80)
+    start = time.monotonic()
+    NumbaMCMCScheduler(generateDemoTasks()).schedule()  # warm-up / pre-compile Numba
+    print("Numba Compilation time:", time.monotonic() - start)
+    runtimes = {}
+    for Scheduler in ALL_IMPLEMENTATIONS:
+        print(Scheduler)
+        scheduler = Scheduler(tasks)
+        start = time.monotonic()
+        scheduler.schedule()
+        runtimes[Scheduler.__name__] = time.monotonic() - start
+    for key, value in sorted(runtimes.items(), key=lambda item: item[1]):
+        print(f"{key:40} took {value:.4f} seconds")

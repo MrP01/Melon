@@ -4,7 +4,6 @@ import random
 from datetime import date, datetime, time, timedelta
 from typing import Iterable, Mapping
 
-import tqdm
 
 from .base import DAY_LENGTH, INITIAL_TEMPERATURE, SWEEP_EXPONENT, AbstractScheduler, Task, TimeSlot
 
@@ -118,7 +117,7 @@ class MCMCScheduler(AbstractScheduler):
             if previous.location != current.location:
                 commutePenalty += 4
         allOnTime = True  # TODO: check with due date
-        print(totalTimePenalty, priorityPenalty, commutePenalty)
+        # print(totalTimePenalty, priorityPenalty, commutePenalty)
         return totalTimePenalty + priorityPenalty + commutePenalty
 
     def mcmcSweep(self):
@@ -126,7 +125,7 @@ class MCMCScheduler(AbstractScheduler):
         energy = self.computeEnergy(self.state)
         E_sum, E_squared_sum = 0, 0
         steps = len(self.tasks) ** 2
-        for i in tqdm.tqdm(range(steps)):
+        for i in range(steps):
             newState = self.permuteState()
             delta = self.computeEnergy(newState) - energy
             acceptanceProbability = min(math.exp(-delta / (energy * self.temperature)), 1)

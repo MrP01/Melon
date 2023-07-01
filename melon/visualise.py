@@ -34,7 +34,6 @@ def plotConvergence(data: np.ndarray, filename: str):
         data (np.array): data of temp, E_avg, E_var
         filename (str): path to file
     """
-    data = np.array(scheduler._log)  # type: ignore
     fig = plt.figure()
     axes: matplotlib.axes.Axes = fig.add_subplot(2, 1, 1)
     axes.plot(data[:, 1])
