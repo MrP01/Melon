@@ -1,7 +1,7 @@
 """The scheduler algorithm"""
 import dataclasses
-from datetime import datetime, timedelta
 import random
+from datetime import datetime, timedelta
 from typing import Mapping
 
 DAY_LENGTH = 14

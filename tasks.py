@@ -2,7 +2,9 @@
 We do not use the CamelCase naming convention for methods in this file because invoke does not recognise CamelCase
 function names as opposed to snake_case names.
 """
+import cProfile
 import pathlib
+import pstats
 import time
 
 import IPython
@@ -102,3 +104,14 @@ def compare_runtime(ctx: Context):
         runtimes[Scheduler.__name__] = time.monotonic() - start
     for key, value in sorted(runtimes.items(), key=lambda item: item[1]):
         print(f"{key:40} took {value:.4f} seconds")
+
+
+@task()
+def profile_scheduler(ctx: Context):
+    """Profile the pure Python MCMC Scheduler."""
+    cProfile.run(
+        "from melon.scheduler.purepython import MCMCScheduler;"
+        "from melon.scheduler.base import generateManyDemoTasks;"
+        "MCMCScheduler(generateManyDemoTasks(60)).schedule()",
+        sort=pstats.SortKey.CUMULATIVE,
+    )
