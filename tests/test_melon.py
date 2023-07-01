@@ -1,21 +1,41 @@
 """Tests for the Melon object."""
+import random
+
+import pytest
+
 from melon.melon import Melon
 
 
 class TestMelon:
     """Test class containing multiple tests as methods."""
 
-    def create_todos(self):
+    def create_todos(self, melon):
         """Not a test, this is to create some todos in the test database."""
-        melon = Melon()
-        melon.autoInit()
         melon.calendars["pytest"].createTodo("Hello").save()
         melon.calendars["pytest"].createTodo("Darkness").save()
         melon.calendars["pytest"].createTodo("My Old Friend").save()
 
+    def test_task_lookup(self):
+        """Tests task look-up."""
+        melon = Melon()
+        melon.max_calendars = 3
+        melon.autoInit()
+        allTasks = list(melon.allTasks())
+        if not allTasks:
+            self.create_todos(melon)
+        keyword = random.choice(allTasks).summary
+        matches = list(melon.findTask(keyword))
+        assert matches, keyword
+        assert matches[0].uid is not None
+        task = melon.getTask(matches[0].uid)
+        assert task.uid == matches[0].uid
+        with pytest.raises(ValueError):
+            melon.getTask("u-i-d-that-definitely-does-not-exist")
+
     def test_init_store_and_load(self):
         """Initialises Melon, stores and loads."""
         melon = Melon()
+        melon.max_calendars = 3
         melon.fetch()
         melon.store()
 
@@ -25,9 +45,10 @@ class TestMelon:
     def test_sorting(self):
         """Sorts a list of Todo objects, which calls the underlying __lt__ function."""
         melon = Melon()
+        melon.max_calendars = 3
         melon.autoInit()
         allTasks = list(melon.allTasks())
         if not allTasks:
-            self.create_todos()
+            self.create_todos(melon)
             allTasks = list(melon.allTasks())
         allTasks.sort()

@@ -1,7 +1,12 @@
 """Tests for the scheduler algorithm."""
 import datetime
+import pathlib
+import tempfile
 
-from melon.scheduler import AvailabilityManager, Task
+import pytest
+
+from melon.melon import Melon
+from melon.scheduler import AbstractScheduler, AvailabilityManager, MCMCScheduler, RustyMCMCScheduler, Task
 
 
 class TestAvailabilityManager:
@@ -39,3 +44,33 @@ class TestAvailabilityManager:
         assert spread[0][1].timestamp == startOfDay
         assert spread[1][1].timestamp == startOfDay + datetime.timedelta(hours=3.5)
         assert spread[2][1].timestamp == startOfDay + datetime.timedelta(days=1)
+
+
+class TestScheduler:
+    """Class that tests various functionality of the schedulers."""
+
+    @pytest.mark.parametrize("Scheduler", (MCMCScheduler, RustyMCMCScheduler))
+    def test_priority_scheduling(self, Scheduler: type[AbstractScheduler]):
+        """Sees whether the scheduler puts high-priority tasks first."""
+        scheduler = Scheduler([Task("1", 3.5, 1, 1), Task("2", 2, 7, 2), Task("3", 11, 3, 1), Task("4", 2, 9, 0)])
+        result = scheduler.schedule()
+        assert len(result) == len(scheduler.tasks)
+
+    @pytest.mark.parametrize("Scheduler", (MCMCScheduler, RustyMCMCScheduler))
+    def test_real_data_scheduling(self, Scheduler: type[AbstractScheduler]):
+        """Schedules based on what autoInit() gives us."""
+        melon = Melon()
+        melon.max_calendars = 3
+        melon.autoInit()
+        scheduler = Scheduler(melon.tasksToSchedule())
+        result = scheduler.schedule()
+        assert len(result) == len(scheduler.tasks)
+
+    @pytest.mark.parametrize("Scheduler", (MCMCScheduler, RustyMCMCScheduler))
+    def test_schedule_and_export(self, Scheduler: type[AbstractScheduler]):
+        """Runs scheduleAllAndExport() to schedule and create an ICS file."""
+        melon = Melon()
+        melon.max_calendars = 3
+        melon.autoInit()
+        outFolder = pathlib.Path(tempfile.gettempdir())
+        melon.scheduleAllAndExport(str(outFolder / "schedule.ics"), Scheduler=Scheduler)

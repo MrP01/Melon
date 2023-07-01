@@ -3,8 +3,8 @@ import pathlib
 
 try:
     import tomllib
-except ImportError:
-    import tomli as tomllib
+except ImportError:  # pragma: no cover
+    import tomli as tomllib  # pragma: no cover
 
 CONFIG_FOLDER = pathlib.Path.home() / ".config" / "melon"
 CONFIG_FOLDER.mkdir(exist_ok=True)

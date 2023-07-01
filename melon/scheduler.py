@@ -1,13 +1,19 @@
 """The scheduler algorithm"""
 import dataclasses
 import math
+import pathlib
 import random
+import sys
 from datetime import date, datetime, time, timedelta
 from typing import Iterable, Mapping
 
 import tqdm
 
+sys.path.append(str(pathlib.Path(__file__).resolve().parent.parent / "target" / "release"))
+import libscheduler
+
 INITIAL_TEMPERATURE = 0.2
+SWEEP_EXPONENT = -1
 
 
 @dataclasses.dataclass
@@ -110,7 +116,27 @@ class AvailabilityManager:
         return False
 
 
-class MCMCScheduler:
+class AbstractScheduler:
+    """Abstract Base Class (ABC) for schedulers."""
+
+    def __init__(self, tasks: list[Task]) -> None:
+        """Initialises the scheduler, working on a set of pre-defined tasks.
+
+        Args:
+            tasks (list[Task]): the tasks to be scheduled
+        """
+        self.tasks = tasks
+
+    def schedule(self) -> Mapping[str, TimeSlot]:
+        """Schedules the tasks using an MCMC procedure.
+
+        Returns:
+            Mapping[str, TimeSlot]: the resulting map of Tasks to TimeSlots
+        """
+        raise NotImplementedError()
+
+
+class MCMCScheduler(AbstractScheduler):
     """MCMC class to schedule tasks to events in a calendar."""
 
     State = tuple[int, ...]  # using literal ellipsis to indicate a homogenous tuple of ints
@@ -121,7 +147,7 @@ class MCMCScheduler:
         Args:
             tasks (list[Task]): the tasks to be scheduled
         """
-        self.tasks = tasks
+        super().__init__(tasks)
         self.availability = AvailabilityManager()
         self.state = tuple(range(len(self.tasks)))  # initialise in order
         self.temperature = 1.0
@@ -135,9 +161,9 @@ class MCMCScheduler:
         newState = list(self.state)
         indexA = random.randrange(len(newState))
         indexB = random.randrange(len(newState))
-        newState[indexA] = indexB
-        newState[indexB] = indexA
-        # print(newState)
+        indexAValue = self.state[indexA]
+        newState[indexA] = self.state[indexB]
+        newState[indexB] = indexAValue
         return tuple(newState)
 
     def computeEnergy(self, state: State) -> float:
@@ -162,7 +188,7 @@ class MCMCScheduler:
             newState = self.permuteState()
             delta = self.computeEnergy(newState) - energy
             acceptanceProbability = min(math.exp(-delta / (energy * self.temperature)), 1)
-            print(f"New state with energy {energy + delta} (delta {delta}), accepted with {acceptanceProbability}.")
+            # print(f"New state with energy {energy + delta} (delta {delta}), accepted with {acceptanceProbability}.")
             if random.random() < acceptanceProbability:
                 self.state = newState
                 energy += delta
@@ -175,5 +201,20 @@ class MCMCScheduler:
         """
         for k in range(1, 11):
             self.mcmcSweep()
-            self.temperature = INITIAL_TEMPERATURE * k ** (-1)
+            self.temperature = INITIAL_TEMPERATURE * k**SWEEP_EXPONENT
+        print("Final State", self.state)
         return dict(self.availability.spreadTasks(self.tasks[i] for i in self.state))
+
+
+class RustyMCMCScheduler(AbstractScheduler):
+    """Markov Chain Monte-Carlo Task Scheduler, implemented in Rust."""
+
+    def schedule(self) -> Mapping[str, TimeSlot]:
+        """Runs the Rust implementation of the scheduler.
+
+        Returns:
+            Mapping[str, TimeSlot]: the resulting schedule
+        """
+        start = datetime.now()  # equivalent to t = 0 for libscheduler
+        result = libscheduler.schedule(list(map(dataclasses.astuple, self.tasks)))
+        return {t[0]: TimeSlot(start + timedelta(hours=t[1]), t[2]) for t in result}

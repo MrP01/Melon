@@ -16,7 +16,7 @@ import icalendar
 
 from .calendar import Calendar, Syncable
 from .config import CONFIG, CONFIG_FOLDER
-from .scheduler import MCMCScheduler, TimeSlot
+from .scheduler import AbstractScheduler, MCMCScheduler, Task, TimeSlot
 from .todo import Todo
 
 
@@ -44,6 +44,7 @@ class Melon:
         self.client = caldav.DAVClient(url=url, username=username, password=password)
         self.calendars: dict[str, Calendar] = {}
         self.principal = None
+        self.max_calendars: int | None = None  # the highest number of calendars to load. Useful for testing.
 
     def connect(self):
         """
@@ -53,6 +54,8 @@ class Melon:
         logging.info("Obtained principal")
 
         all_calendars = self.principal.calendars()
+        if self.max_calendars is not None:
+            all_calendars = all_calendars[: self.max_calendars]
         self.calendars = {cal.name: Calendar(cal) for cal in all_calendars if cal.name not in self.HIDDEN_CALENDARS}
         logging.info(f"Obtained {len(self.calendars)} calendars")
 
@@ -102,6 +105,8 @@ class Melon:
             self.calendars[name] = Calendar.loadFromFile(
                 self.client, self.principal, name, data[name]["token"], data[name]["url"]
             )
+            if self.max_calendars is not None and len(self.calendars) >= self.max_calendars:
+                break
         logging.info(f"Loaded {len(self.calendars)} calendars from disk.")
         for calendar in self.calendars.values():
             self._load_syncable_tasks(calendar)
@@ -214,14 +219,22 @@ class Melon:
             schedule.add_component(event)
         return schedule
 
-    def scheduleAllAndExport(self, file: str):
+    def tasksToSchedule(self) -> list[Task]:
+        """Returns all incomplete tasks as scheduler.Task objects
+
+        Returns:
+            list[Task]: _description_
+        """
+        return list(map(Todo.toTask, self.allIncompleteTasks()))
+
+    def scheduleAllAndExport(self, file: str, Scheduler: type[AbstractScheduler] = MCMCScheduler):
         """Runs the scheduler on all tasks and exports as an ICS file.
 
         Args:
             file (str): filesystem path that the ics file should be exported to
         """
         logging.info("Initialising scheduler.")
-        scheduler = MCMCScheduler(list(map(Todo.toTask, self.allIncompleteTasks())))
+        scheduler = Scheduler(self.tasksToSchedule())
         logging.info(f"Scheduling {len(scheduler.tasks)} now.")
         schedule = scheduler.schedule()
         logging.info("Exporting.")
