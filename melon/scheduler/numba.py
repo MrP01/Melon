@@ -8,10 +8,9 @@ from typing import Mapping, Sequence
 import numba
 from numba.typed.typedlist import List as NumbaList
 
-from .base import INITIAL_TEMPERATURE, SWEEP_EXPONENT, AbstractScheduler, TimeSlot
+from .base import DAY_LENGTH, INITIAL_TEMPERATURE, SWEEP_EXPONENT, AbstractScheduler, TimeSlot
 
 State = list[int]
-DAY_LENGTH = 14
 
 
 @numba.njit()

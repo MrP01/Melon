@@ -63,17 +63,6 @@ class AvailabilityManager:
             yield (task.uid, TimeSlot(stamp, taskDuration.total_seconds() / 3600))
             stamp += taskDuration
 
-    def isAvailable(self, timeslot: TimeSlot) -> bool:
-        """Returns whether the given timeslot could fully fit within the designated timeframe.
-
-        Args:
-            timeslot (TimeSlot): the timeframe
-
-        Returns:
-            bool: whether the task fits
-        """
-        return False
-
 
 class MCMCScheduler(AbstractScheduler):
     """MCMC class to schedule tasks to events in a calendar."""
@@ -90,6 +79,7 @@ class MCMCScheduler(AbstractScheduler):
         self.availability = AvailabilityManager()
         self.state = tuple(range(len(self.tasks)))  # initialise in order
         self.temperature = 1.0
+        self._log = []
 
     def permuteState(self) -> State:
         """Proposes a new state to use instead of the old state.
@@ -123,7 +113,9 @@ class MCMCScheduler(AbstractScheduler):
     def mcmcSweep(self):
         """Performs a full MCMC sweep"""
         energy = self.computeEnergy(self.state)
-        for i in tqdm.tqdm(range(len(self.tasks) ** 2)):
+        E_sum, E_squared_sum = 0, 0
+        steps = len(self.tasks) ** 2
+        for i in tqdm.tqdm(range(steps)):
             newState = self.permuteState()
             delta = self.computeEnergy(newState) - energy
             acceptanceProbability = min(math.exp(-delta / (energy * self.temperature)), 1)
@@ -131,6 +123,11 @@ class MCMCScheduler(AbstractScheduler):
             if random.random() < acceptanceProbability:
                 self.state = newState
                 energy += delta
+            E_sum += energy
+            E_squared_sum += energy**2
+        E_avg = E_sum / steps
+        E_var = E_squared_sum / steps - E_avg**2
+        self._log.append((self.temperature, E_avg, E_var))
 
     def schedule(self) -> Mapping[str, TimeSlot]:
         """Schedules the tasks using an MCMC procedure.

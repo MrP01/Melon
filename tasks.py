@@ -6,14 +6,20 @@ import pathlib
 import time
 
 import IPython
+import matplotlib.axes
+import matplotlib.figure
+import numpy as np
 import requests
 from invoke.context import Context
 from invoke.tasks import task
+from matplotlib import pyplot as plt
 from traitlets.config import Config
 
 from melon.melon import Melon
+from melon.scheduler.purepython import MCMCScheduler
 
 HOME = pathlib.Path.home()
+RESULTS = pathlib.Path(__file__).parent / "report" / "results"
 
 
 @task()
@@ -25,7 +31,20 @@ def schedule_and_export(ctx: Context, path: str = str(HOME / "Personal" / "task-
     """
     melon = Melon()
     melon.autoInit()
-    melon.scheduleAllAndExport(path)
+    scheduler = melon.scheduleAllAndExport(path, Scheduler=MCMCScheduler)
+
+    data = np.array(scheduler._log)  # type: ignore
+    fig = plt.figure()
+    axes: matplotlib.axes.Axes = fig.add_subplot(2, 1, 1)
+    axes.plot(data[:, 1])
+    axes.set_xlabel("Iteration")
+    axes.set_ylabel("$E_{avg}$")
+    axes: matplotlib.axes.Axes = fig.add_subplot(2, 1, 2)
+    axes.plot(data[:, 2])
+    axes.set_xlabel("Iteration")
+    axes.set_ylabel("$E_{var}$")
+    fig.savefig(str(RESULTS / "convergence.pdf"))  # type: ignore
+    plt.show()
 
 
 @task()

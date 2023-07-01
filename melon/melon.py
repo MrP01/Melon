@@ -245,3 +245,4 @@ class Melon:
         with open(file, "wb") as f:
             f.write(export.to_ical())
         logging.info("Finished export.")
+        return scheduler
