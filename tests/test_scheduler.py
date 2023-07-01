@@ -7,10 +7,12 @@ import pytest
 
 from melon.melon import Melon
 from melon.scheduler.base import AbstractScheduler, Task
-from melon.scheduler.cppscheduler import CppMCMCScheduler
-from melon.scheduler.numbascheduler import NumbaMCMCScheduler
+from melon.scheduler.cpp import CppMCMCScheduler
+from melon.scheduler.numba import NumbaMCMCScheduler
 from melon.scheduler.purepython import AvailabilityManager, MCMCScheduler
 from melon.scheduler.rust import RustyMCMCScheduler
+
+ALL_IMPLEMENTATIONS = (MCMCScheduler, RustyMCMCScheduler, NumbaMCMCScheduler, CppMCMCScheduler)
 
 
 class TestAvailabilityManager:
@@ -53,14 +55,14 @@ class TestAvailabilityManager:
 class TestScheduler:
     """Class that tests various functionality of the schedulers."""
 
-    @pytest.mark.parametrize("Scheduler", (MCMCScheduler, RustyMCMCScheduler, NumbaMCMCScheduler, CppMCMCScheduler))
+    @pytest.mark.parametrize("Scheduler", ALL_IMPLEMENTATIONS)
     def test_priority_scheduling(self, Scheduler: type[AbstractScheduler]):
         """Sees whether the scheduler puts high-priority tasks first."""
         scheduler = Scheduler([Task("1", 3.5, 1, 1), Task("2", 2.0, 7, 2), Task("3", 11.0, 3, 1), Task("4", 2.0, 9, 0)])
         result = scheduler.schedule()
         assert len(result) == len(scheduler.tasks)
 
-    @pytest.mark.parametrize("Scheduler", (MCMCScheduler, RustyMCMCScheduler))
+    @pytest.mark.parametrize("Scheduler", ALL_IMPLEMENTATIONS)
     def test_real_data_scheduling(self, Scheduler: type[AbstractScheduler]):
         """Schedules based on what autoInit() gives us."""
         melon = Melon()
@@ -70,7 +72,7 @@ class TestScheduler:
         result = scheduler.schedule()
         assert len(result) == len(scheduler.tasks)
 
-    @pytest.mark.parametrize("Scheduler", (MCMCScheduler, RustyMCMCScheduler))
+    @pytest.mark.parametrize("Scheduler", ALL_IMPLEMENTATIONS)
     def test_schedule_and_export(self, Scheduler: type[AbstractScheduler]):
         """Runs scheduleAllAndExport() to schedule and create an ICS file."""
         melon = Melon()
