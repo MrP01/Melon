@@ -8,7 +8,7 @@ import icalendar.cal
 import icalendar.prop
 import vobject
 
-from melon.scheduler import Task
+from melon.scheduler.base import Task
 
 NEW_TASK_TEXT = "An exciting new task!"
 MIDNIGHT = datetime.time(0, 0)

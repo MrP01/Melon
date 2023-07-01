@@ -5,7 +5,7 @@ edition = "2021"
 
 [lib]
 name = "scheduler"
-path = "melon/libscheduler.rs"
+path = "melon/scheduler/libscheduler.rs"
 crate-type = ["cdylib"]
 
 [dependencies]

@@ -66,9 +66,9 @@ fn compute_energy(tasks: &Vec<Task>, state: &Vec<usize>) -> f64 {
     .map(|i| (i as u32) * tasks[state[i] as usize].priority)
     .sum();
   let mut commute_penalty: u32 = 0;
-  for index in state {
-    let previous_task = &tasks[state[*index - 1]];
-    let this_task = &tasks[state[*index]];
+  for index in 1..state.len() {
+    let previous_task = &tasks[state[index - 1]];
+    let this_task = &tasks[state[index]];
     if previous_task.location == 0 || this_task.location == 0 {
       continue;
     }

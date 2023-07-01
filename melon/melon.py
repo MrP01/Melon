@@ -16,7 +16,8 @@ import icalendar
 
 from .calendar import Calendar, Syncable
 from .config import CONFIG, CONFIG_FOLDER
-from .scheduler import AbstractScheduler, MCMCScheduler, Task, TimeSlot
+from .scheduler.base import AbstractScheduler, Task, TimeSlot
+from .scheduler.purepython import MCMCScheduler
 from .todo import Todo
 
 

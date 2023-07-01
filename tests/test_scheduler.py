@@ -6,7 +6,10 @@ import tempfile
 import pytest
 
 from melon.melon import Melon
-from melon.scheduler import AbstractScheduler, AvailabilityManager, MCMCScheduler, RustyMCMCScheduler, Task
+from melon.scheduler.base import AbstractScheduler, Task
+from melon.scheduler.numbascheduler import NumbaMCMCScheduler
+from melon.scheduler.purepython import AvailabilityManager, MCMCScheduler
+from melon.scheduler.rust import RustyMCMCScheduler
 
 
 class TestAvailabilityManager:
@@ -49,10 +52,10 @@ class TestAvailabilityManager:
 class TestScheduler:
     """Class that tests various functionality of the schedulers."""
 
-    @pytest.mark.parametrize("Scheduler", (MCMCScheduler, RustyMCMCScheduler))
+    @pytest.mark.parametrize("Scheduler", (MCMCScheduler, RustyMCMCScheduler, NumbaMCMCScheduler))
     def test_priority_scheduling(self, Scheduler: type[AbstractScheduler]):
         """Sees whether the scheduler puts high-priority tasks first."""
-        scheduler = Scheduler([Task("1", 3.5, 1, 1), Task("2", 2, 7, 2), Task("3", 11, 3, 1), Task("4", 2, 9, 0)])
+        scheduler = Scheduler([Task("1", 3.5, 1, 1), Task("2", 2.0, 7, 2), Task("3", 11.0, 3, 1), Task("4", 2.0, 9, 0)])
         result = scheduler.schedule()
         assert len(result) == len(scheduler.tasks)
 

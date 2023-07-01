@@ -1,53 +1,15 @@
 """The scheduler algorithm"""
-import dataclasses
 import math
-import pathlib
 import random
-import sys
 from datetime import date, datetime, time, timedelta
 from typing import Iterable, Mapping
 
 import tqdm
 
-sys.path.append(str(pathlib.Path(__file__).resolve().parent.parent / "target" / "release"))
-import libscheduler
+from .base import AbstractScheduler, Task, TimeSlot
 
 INITIAL_TEMPERATURE = 0.2
 SWEEP_EXPONENT = -1
-
-
-@dataclasses.dataclass
-class Task:
-    """Slim struct representing a task"""
-
-    uid: str  # unique identifier of the task
-    duration: float  # estimated, in hours
-    priority: int  # between 1 and 9
-    location: int  # number indicating the location, where 0 is "hybrid"
-
-
-@dataclasses.dataclass
-class TimeSlot:
-    """Slim struct representing a time slot, so an event consisting of a start and end date."""
-
-    timestamp: datetime
-    duration: float  # in hours
-
-    @property
-    def timedelta(self) -> timedelta:
-        """
-        Returns:
-            timedelta: the duration as a datetime.timedelta instance
-        """
-        return timedelta(hours=self.duration)
-
-    @property
-    def end(self) -> datetime:
-        """
-        Returns:
-            datetime: the end timestamp of this time slot
-        """
-        return self.timestamp + self.timedelta
 
 
 class AvailabilityManager:
@@ -114,26 +76,6 @@ class AvailabilityManager:
             bool: whether the task fits
         """
         return False
-
-
-class AbstractScheduler:
-    """Abstract Base Class (ABC) for schedulers."""
-
-    def __init__(self, tasks: list[Task]) -> None:
-        """Initialises the scheduler, working on a set of pre-defined tasks.
-
-        Args:
-            tasks (list[Task]): the tasks to be scheduled
-        """
-        self.tasks = tasks
-
-    def schedule(self) -> Mapping[str, TimeSlot]:
-        """Schedules the tasks using an MCMC procedure.
-
-        Returns:
-            Mapping[str, TimeSlot]: the resulting map of Tasks to TimeSlots
-        """
-        raise NotImplementedError()
 
 
 class MCMCScheduler(AbstractScheduler):
@@ -204,17 +146,3 @@ class MCMCScheduler(AbstractScheduler):
             self.temperature = INITIAL_TEMPERATURE * k**SWEEP_EXPONENT
         print("Final State", self.state)
         return dict(self.availability.spreadTasks(self.tasks[i] for i in self.state))
-
-
-class RustyMCMCScheduler(AbstractScheduler):
-    """Markov Chain Monte-Carlo Task Scheduler, implemented in Rust."""
-
-    def schedule(self) -> Mapping[str, TimeSlot]:
-        """Runs the Rust implementation of the scheduler.
-
-        Returns:
-            Mapping[str, TimeSlot]: the resulting schedule
-        """
-        start = datetime.now()  # equivalent to t = 0 for libscheduler
-        result = libscheduler.schedule(list(map(dataclasses.astuple, self.tasks)))
-        return {t[0]: TimeSlot(start + timedelta(hours=t[1]), t[2]) for t in result}
