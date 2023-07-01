@@ -63,10 +63,17 @@ class TestScheduler:
         assert len(result) == len(scheduler.tasks)
 
     @pytest.mark.parametrize("Scheduler", ALL_IMPLEMENTATIONS)
+    def test_task_too_long(self, Scheduler: type[AbstractScheduler]):
+        """Sees whether the scheduler puts high-priority tasks first."""
+        scheduler = Scheduler([Task("1", 3.5, 1, 1), Task("2", 200.0, 7, 2)])
+        with pytest.raises((RuntimeError, SystemError)):
+            scheduler.schedule()
+
+    @pytest.mark.parametrize("Scheduler", ALL_IMPLEMENTATIONS)
     def test_real_data_scheduling(self, Scheduler: type[AbstractScheduler]):
         """Schedules based on what autoInit() gives us."""
         melon = Melon()
-        melon.max_calendars = 3
+        melon.max_calendars = 5
         melon.autoInit()
         scheduler = Scheduler(melon.tasksToSchedule())
         result = scheduler.schedule()
@@ -76,7 +83,7 @@ class TestScheduler:
     def test_schedule_and_export(self, Scheduler: type[AbstractScheduler]):
         """Runs scheduleAllAndExport() to schedule and create an ICS file."""
         melon = Melon()
-        melon.max_calendars = 3
+        melon.max_calendars = 5
         melon.autoInit()
         outFolder = pathlib.Path(tempfile.gettempdir())
         melon.scheduleAllAndExport(str(outFolder / "schedule.ics"), Scheduler=Scheduler)

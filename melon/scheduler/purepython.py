@@ -52,7 +52,7 @@ class AvailabilityManager:
         stamp = slot.timestamp
         for task in tasks:
             if task.duration > self.defaultDayLength:
-                raise ValueError(
+                raise RuntimeError(
                     "You are trying to schedule a task longer than any working slot."
                     "Split it into smaller chunks! Automatic splitting is not supported."
                 )
@@ -106,9 +106,20 @@ class MCMCScheduler(AbstractScheduler):
         """
         spread = list(self.availability.spreadTasks(self.tasks[i] for i in state))
         totalTimePenalty = (spread[-1][1].end - spread[0][1].timestamp).total_seconds() / 3600
-        priorityPenalty = sum(position * self.tasks[state[position]].priority for position in range(len(state)))
+        priorityPenalty = sum(
+            math.sqrt(position) * self.tasks[state[position]].priority for position in range(len(state))
+        )
+        commutePenalty = 0
+        for position in range(1, len(state)):
+            previous = self.tasks[state[position - 1]]
+            current = self.tasks[state[position]]
+            if previous.location == 0 or current.location == 0:
+                continue  # hybrid tasks can be done from anywhere, so do not penalise
+            if previous.location != current.location:
+                commutePenalty += 4
         allOnTime = True  # TODO: check with due date
-        return totalTimePenalty + priorityPenalty
+        print(totalTimePenalty, priorityPenalty, commutePenalty)
+        return totalTimePenalty + priorityPenalty + commutePenalty
 
     def mcmcSweep(self):
         """Performs a full MCMC sweep"""

@@ -1,8 +1,15 @@
+import matplotlib.axes
 import matplotlib.pyplot as plt
 import numpy as np
 
 
-def chart(data, title):
+def priorityChart(data, title):
+    """Plots a helpful priority chart
+
+    Args:
+        data (): data
+        title (str): titles of plots
+    """
     labels = ["Completed Tasks", "Important Tasks", "In Time Tasks"]
     angles = np.linspace(0, 2 * np.pi, len(labels), endpoint=False)
     angles = np.concatenate((angles, [angles[0]]))
@@ -18,3 +25,23 @@ def chart(data, title):
         ax.set_thetagrids(angles * 180 / np.pi, labels)
         ax.set_ylim(0, 1.0)
         ax.grid(True)
+
+
+def plotConvergence(data: np.ndarray, filename: str):
+    """Plots convergence data to a file
+
+    Args:
+        data (np.array): data of temp, E_avg, E_var
+        filename (str): path to file
+    """
+    data = np.array(scheduler._log)  # type: ignore
+    fig = plt.figure()
+    axes: matplotlib.axes.Axes = fig.add_subplot(2, 1, 1)
+    axes.plot(data[:, 1])
+    axes.set_xlabel("Iteration")
+    axes.set_ylabel("$E_{avg}$")
+    axes: matplotlib.axes.Axes = fig.add_subplot(2, 1, 2)
+    axes.plot(data[:, 2])
+    axes.set_xlabel("Iteration")
+    axes.set_ylabel("$E_{var}$")
+    fig.savefig(filename)  # type: ignore

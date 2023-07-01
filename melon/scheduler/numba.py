@@ -28,7 +28,7 @@ def spreadTasks(tasks: Sequence[tuple[str, float, int, int]]) -> Sequence[tuple[
     stamp = slot[0]
     for task in tasks:
         if task[1] > DAY_LENGTH:
-            raise ValueError(
+            raise RuntimeError(
                 "You are trying to schedule a task longer than any working slot."
                 "Split it into smaller chunks! Automatic splitting is not supported."
             )

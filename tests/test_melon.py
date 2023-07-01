@@ -1,4 +1,5 @@
 """Tests for the Melon object."""
+import datetime
 import random
 
 import pytest
@@ -35,7 +36,7 @@ class TestMelon:
     def test_init_store_and_load(self):
         """Initialises Melon, stores and loads."""
         melon = Melon()
-        melon.max_calendars = 3
+        melon.max_calendars = 5
         melon.fetch()
         melon.store()
 
@@ -45,10 +46,22 @@ class TestMelon:
     def test_sorting(self):
         """Sorts a list of Todo objects, which calls the underlying __lt__ function."""
         melon = Melon()
-        melon.max_calendars = 3
+        melon.max_calendars = 5
         melon.autoInit()
         allTasks = list(melon.allTasks())
         if not allTasks:
             self.create_todos(melon)
             allTasks = list(melon.allTasks())
+        firstBestCalendar = next(iter(melon.calendars.values()))
+        firstBestCalendar.createTodo()  # add an empty todo to be handled when sorting
         allTasks.sort()
+
+    def test_todo_creation(self):
+        melon = Melon()
+        melon.max_calendars = 3
+        melon.autoInit()
+        firstBestCalendar = next(iter(melon.calendars.values()))
+        todo = firstBestCalendar.createTodo("New Todo")
+        todo.dueDate = datetime.date.today()
+        assert todo.dueDate == datetime.date.today()
+        assert todo.dueTime is None

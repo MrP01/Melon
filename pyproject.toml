@@ -48,6 +48,9 @@ style = ["github://MrP01/lint-me-now/nitpick-base-style.toml", "github://MrP01/l
 [tool.interrogate]
 exclude = ["stuff"]
 
+[tool.coverage.run]
+omit = ["melon/scheduler/numba.py"]
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

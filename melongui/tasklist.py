@@ -35,7 +35,8 @@ class TaskListView(QtWidgets.QListWidget):
         self.addAddButton()
 
     def mouseDoubleClickEvent(self, event: QMouseEvent) -> None:
-        """
+        """Handles mouse double click
+
         Args:
             event (QMouseEvent): Argument
         """
@@ -44,7 +45,8 @@ class TaskListView(QtWidgets.QListWidget):
         self.editItem(item)
 
     def addTask(self, task: Todo) -> OrderableTaskItem:
-        """
+        """Adds a Todo to the list
+
         Args:
             task (Todo): Argument
 
@@ -59,7 +61,8 @@ class TaskListView(QtWidgets.QListWidget):
         return item
 
     def attachTaskWidget(self, item):
-        """
+        """For a given ListWidgetItem, attaches a task widget
+
         Args:
             item: Argument
         """
@@ -68,7 +71,8 @@ class TaskListView(QtWidgets.QListWidget):
         self.setItemWidget(item, widget)
 
     def completeTask(self, item: QtWidgets.QListWidgetItem):
-        """
+        """Completes the task associated with the given item.
+
         Args:
             item (QListWidgetItem): Argument
         """
@@ -77,9 +81,7 @@ class TaskListView(QtWidgets.QListWidget):
         self.takeItem(self.row(item))
 
     def addAddButton(self):
-        """
-        Args:
-        """
+        """Adds the task creation button at the bottom of the list."""
         self._addTaskItem = OrderableTaskItem("Add Task")
         self._addTaskItem.setData(Qt.ItemDataRole.EditRole, "add-task")
         self.addItem(self._addTaskItem)
@@ -88,7 +90,8 @@ class TaskListView(QtWidgets.QListWidget):
         self.setItemWidget(self._addTaskItem, addButton)
 
     def setCalendarFilter(self, calendarName):
-        """
+        """Only shows tasks for the given calendar.
+
         Args:
             calendarName: Argument
         """
@@ -102,15 +105,14 @@ class TaskListView(QtWidgets.QListWidget):
         self._currentCalendarName = calendarName
 
     def clearCalendarFilter(self):
-        """
-        Args:
-        """
+        """Clears the calendar filter, hence shows all tasks"""
         for i in range(self.count()):
             self.item(i).setHidden(False)
         self._currentCalendarName = None
 
     def onItemChange(self, item: QtWidgets.QListWidgetItem):
-        """
+        """Called when an item's value changes. Handles saving of the underlying object.
+
         Args:
             item (QListWidgetItem): Argument
         """
@@ -137,9 +139,7 @@ class TaskListView(QtWidgets.QListWidget):
         logging.debug("... and synced!")
 
     def addEmptyTask(self):
-        """
-        Args:
-        """
+        """Add an empty task to the bottom for editing and saving later."""
         if self._currentCalendarName is None:
             print("Please select a calendar first!")
             return
@@ -152,16 +152,16 @@ class TaskListView(QtWidgets.QListWidget):
         self.editItem(item)
 
     def keyPressEvent(self, event: QKeyEvent) -> None:
-        """
+        """Handles keypresses.
+
         Args:
             event (QKeyEvent): Argument
         """
-        # if event.key() == Qt.Key.Key_Plus:
-        #     self.addEmptyTask()
         return super().keyPressEvent(event)
 
     def delegateEditorDestroyed(self, index):
-        """
+        """When the editor is destroyed, re-attach the item widget
+
         Args:
             index: Argument
         """

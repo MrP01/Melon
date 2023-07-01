@@ -1,5 +1,6 @@
 """This module contains the Todo class."""
 import datetime
+import re
 from typing import Literal
 
 import caldav
@@ -170,7 +171,14 @@ class Todo(caldav.Todo):
             Task: a melon.scheduler.Task
         """
         assert self.uid is not None
-        return Task(self.uid, 1, self.priority, 0)
+        location = 0
+        if "home" in self.summary:
+            location = 1
+        elif "work" in self.summary:
+            location = 2
+        match = re.search(r"\b([\d\,\.])+h\b", self.summary)
+        hours = float(match.group(1)) if match else 1
+        return Task(self.uid, hours, self.priority, location)
 
     def __lt__(self, other: "Todo") -> bool:
         """Compares two todos in terms of ordering
