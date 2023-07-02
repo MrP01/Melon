@@ -84,7 +84,27 @@ until convergence, repeat
   Used \texttt{logging}.
   \subsection{Maintaining Code Quality}
   Using \texttt{pre-commit} and GitHub Actions CI/CD.
+
+  \texttt{
+    \hspace*{-1em} prettier........................................................\textcolor{green}{Passed} \\
+    fix end of files................................................\textcolor{green}{Passed} \\
+    trim trailing whitespace........................................\textcolor{green}{Passed} \\
+    black...........................................................\textcolor{green}{Passed} \\
+    ruff............................................................\textcolor{green}{Passed} \\
+    check blanket noqa..............................................\textcolor{green}{Passed} \\
+    check for eval()................................................\textcolor{green}{Passed} \\
+    interrogate.....................................................\textcolor{green}{Passed} \\
+    autoflake.......................................................\textcolor{green}{Passed} \\
+    pyupgrade.......................................................\textcolor{green}{Passed} \\
+    pyright.........................................................\textcolor{green}{Passed} \\
+    pytest-check....................................................\textcolor{green}{Passed} \\
+    clang-format....................................................\textcolor{green}{Passed} \\
+    latex-format-all................................................\textcolor{green}{Passed} \\
+  }
+
   Uses \texttt{invoke} to manage common development tasks.
+
+  Also have \texttt{nitpick} to synchronise linter configuration across projects.
 
   \begin{minted}{python}
     import numpy
@@ -99,34 +119,34 @@ until convergence, repeat
     \caption{RESULT: PASSED (minimum: 80.0\%, actual: 100.0\%)}
     \begin{tabular}{lllll}
       \hline
-      \bf Name                        & \bf Total & \bf Miss & \bf Cover & \bf Cover \\
+      \bf Name                        & \bf Total & \bf Miss & \bf Cover & \bf Cover                 \\
       \hline
-      main.py                         & 2         & 0        & 2         & 100\%     \\
-      tasks.py                        & 8         & 0        & 8         & 100\%     \\
-      docs/conf.py                    & 1         & 0        & 1         & 100\%     \\
-      melon/\_\_init\_\_.py           & 1         & 0        & 1         & 100\%     \\
-      melon/calendar.py               & 11        & 0        & 11        & 100\%     \\
-      melon/config.py                 & 1         & 0        & 1         & 100\%     \\
-      melon/melon.py                  & 19        & 0        & 19        & 100\%     \\
-      melon/todo.py                   & 20        & 0        & 20        & 100\%     \\
-      melon/visualise.py              & 3         & 0        & 3         & 100\%     \\
-      melon/scheduler/\_\_init\_\_.py & 1         & 0        & 1         & 100\%     \\
-      melon/scheduler/base.py         & 10        & 0        & 10        & 100\%     \\
-      melon/scheduler/cpp.py          & 3         & 0        & 3         & 100\%     \\
-      melon/scheduler/numba.py        & 8         & 0        & 8         & 100\%     \\
-      melon/scheduler/purepython.py   & 12        & 0        & 12        & 100\%     \\
-      melon/scheduler/rust.py         & 3         & 0        & 3         & 100\%     \\
-      melongui/\_\_init\_\_.py        & 1         & 0        & 1         & 100\%     \\
-      melongui/calendarlist.py        & 6         & 0        & 6         & 100\%     \\
-      melongui/mainwindow.py          & 14        & 0        & 14        & 100\%     \\
-      melongui/taskitemdelegate.py    & 12        & 0        & 12        & 100\%     \\
-      melongui/tasklist.py            & 14        & 0        & 14        & 100\%     \\
-      melongui/taskwidgets.py         & 8         & 0        & 8         & 100\%     \\
-      tests/\_\_init\_\_.py           & 1         & 0        & 1         & 100\%     \\
-      tests/test\_melon.py            & 7         & 0        & 7         & 100\%     \\
-      tests/test\_scheduler.py        & 9         & 0        & 9         & 100\%     \\
+      main.py                         & 2         & 0        & 2         & \textcolor{green}{100 \%} \\
+      tasks.py                        & 8         & 0        & 8         & \textcolor{green}{100 \%} \\
+      docs/conf.py                    & 1         & 0        & 1         & \textcolor{green}{100 \%} \\
+      melon/\_\_init\_\_.py           & 1         & 0        & 1         & \textcolor{green}{100 \%} \\
+      melon/calendar.py               & 11        & 0        & 11        & \textcolor{green}{100 \%} \\
+      melon/config.py                 & 1         & 0        & 1         & \textcolor{green}{100 \%} \\
+      melon/melon.py                  & 19        & 0        & 19        & \textcolor{green}{100 \%} \\
+      melon/todo.py                   & 20        & 0        & 20        & \textcolor{green}{100 \%} \\
+      melon/visualise.py              & 3         & 0        & 3         & \textcolor{green}{100 \%} \\
+      melon/scheduler/\_\_init\_\_.py & 1         & 0        & 1         & \textcolor{green}{100 \%} \\
+      melon/scheduler/base.py         & 10        & 0        & 10        & \textcolor{green}{100 \%} \\
+      melon/scheduler/cpp.py          & 3         & 0        & 3         & \textcolor{green}{100 \%} \\
+      melon/scheduler/numba.py        & 8         & 0        & 8         & \textcolor{green}{100 \%} \\
+      melon/scheduler/purepython.py   & 12        & 0        & 12        & \textcolor{green}{100 \%} \\
+      melon/scheduler/rust.py         & 3         & 0        & 3         & \textcolor{green}{100 \%} \\
+      melongui/\_\_init\_\_.py        & 1         & 0        & 1         & \textcolor{green}{100 \%} \\
+      melongui/calendarlist.py        & 6         & 0        & 6         & \textcolor{green}{100 \%} \\
+      melongui/mainwindow.py          & 14        & 0        & 14        & \textcolor{green}{100 \%} \\
+      melongui/taskitemdelegate.py    & 12        & 0        & 12        & \textcolor{green}{100 \%} \\
+      melongui/tasklist.py            & 14        & 0        & 14        & \textcolor{green}{100 \%} \\
+      melongui/taskwidgets.py         & 8         & 0        & 8         & \textcolor{green}{100 \%} \\
+      tests/\_\_init\_\_.py           & 1         & 0        & 1         & \textcolor{green}{100 \%} \\
+      tests/test\_melon.py            & 7         & 0        & 7         & \textcolor{green}{100 \%} \\
+      tests/test\_scheduler.py        & 9         & 0        & 9         & \textcolor{green}{100 \%} \\
       \hline
-      \bf TOTAL                       & 175       & 0        & 175       & 100.0\%   \\
+      \bf TOTAL                       & 175       & 0        & 175       & \textcolor{green}{100 \%} \\
       \hline
     \end{tabular}
   \end{table}

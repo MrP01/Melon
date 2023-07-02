@@ -43,7 +43,7 @@ repos:
           - --remove-duplicate-keys
           - --ignore-init-module-imports
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.7.0
+    rev: v3.8.0
     hooks:
       - id: pyupgrade
   - repo: local
@@ -63,3 +63,15 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v16.0.6
+    hooks:
+      - id: clang-format
+  - repo: local
+    hooks:
+      - id: latex-format-all
+        name: latex-format-all
+        entry: latex-format-all
+        language: system
+        types:
+          - tex

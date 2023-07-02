@@ -4,7 +4,6 @@ import random
 from datetime import date, datetime, time, timedelta
 from typing import Iterable, Mapping
 
-
 from .base import DAY_LENGTH, INITIAL_TEMPERATURE, SWEEP_EXPONENT, AbstractScheduler, Task, TimeSlot
 
 
