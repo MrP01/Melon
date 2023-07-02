@@ -34,6 +34,7 @@ class Melon:
         url=CONFIG["client"]["url"],
         username=CONFIG["client"]["username"],
         password=CONFIG["client"]["password"],
+        maxCalendars: int | None = None,
     ) -> None:
         """Initialises the Melon client
 
@@ -41,11 +42,12 @@ class Melon:
             url (str, optional): URL to the CalDAV server. Defaults to CONFIG["client"]["url"].
             username (str, optional): Username. Defaults to CONFIG["client"]["username"].
             password (str, optional): Password. Defaults to CONFIG["client"]["password"].
+            maxCalendars (int, optional): the highest number of calendars to load. Useful for testing.
         """
         self.client = caldav.DAVClient(url=url, username=username, password=password)
         self.calendars: dict[str, Calendar] = {}
         self.principal = None
-        self.max_calendars: int | None = None  # the highest number of calendars to load. Useful for testing.
+        self.maxCalendars: int | None = maxCalendars
 
     def connect(self):
         """
@@ -55,8 +57,8 @@ class Melon:
         logging.info("Obtained principal")
 
         all_calendars = self.principal.calendars()
-        if self.max_calendars is not None:
-            all_calendars = all_calendars[: self.max_calendars]
+        if self.maxCalendars is not None:
+            all_calendars = all_calendars[: self.maxCalendars]
         self.calendars = {cal.name: Calendar(cal) for cal in all_calendars if cal.name not in self.HIDDEN_CALENDARS}
         logging.info(f"Obtained {len(self.calendars)} calendars")
 
@@ -106,7 +108,7 @@ class Melon:
             self.calendars[name] = Calendar.loadFromFile(
                 self.client, self.principal, name, data[name]["token"], data[name]["url"]
             )
-            if self.max_calendars is not None and len(self.calendars) >= self.max_calendars:
+            if self.maxCalendars is not None and len(self.calendars) >= self.maxCalendars:
                 break
         logging.info(f"Loaded {len(self.calendars)} calendars from disk.")
         for calendar in self.calendars.values():

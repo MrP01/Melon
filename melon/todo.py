@@ -177,7 +177,7 @@ class Todo(caldav.Todo):
         elif "work" in self.summary:
             location = 2
         match = re.search(r"\b([\d\,\.])+h\b", self.summary)
-        hours = float(match.group(1)) if match else 1
+        hours = float(match.group(1)) if match else 1.0
         return Task(self.uid, hours, self.priority, location)
 
     def __lt__(self, other: "Todo") -> bool:

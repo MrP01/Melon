@@ -61,12 +61,18 @@
   Is platform-independent, for example due to the usage of \texttt{pathlib.Path}.
 
   \section{Underlying Theory}
-  \begin{algorithm}[language=pseudo,caption={\centering The Metropolis-Hastings algorithm \parencite{metropolis, hastings}},basicstyle=\footnotesize]
+  \begin{algorithm}[language=pseudo,caption={\centering The Metropolis-Hastings sub-routine \parencite{metropolis, hastings}},basicstyle=\footnotesize]
 until convergence, repeat
   sample a candidate $\vec{x}^*$.
   set $\vec{x}^{n+1} = \vec{x}^*$ with acceptance probability
     $p_{\rm accept} = \min\left(1, \e^{-\beta (F^{n+1} - F^n)}\right)\,,$ with $\beta \in \R^+$ a transition factor.
   Otherwise, let $\vec{x}^{n+1} = \vec{x}^{n}$.
+  \end{algorithm}
+
+  Which is a subroutine to an outer iteration, a technique commonly referred to as Simulated Annealing.
+
+  \begin{algorithm}[language=pseudo,caption={\centering Simulated Annealing},basicstyle=\footnotesize]
+until convergence, repeat
   \end{algorithm}
 
   \section{Code Quality}
@@ -76,7 +82,24 @@ until convergence, repeat
   \subsection{Tests}
   Server can be started using Docker.
 
+  As we can see using \texttt{pytest ----durations=0},
+
+  \texttt{
+    ========================= slowest durations ========================= \\
+    3.53s call TestScheduler::test\_length[NumbaMCMCScheduler] \\
+    0.19s call TestMelon::test\_init\_store\_and\_load \\
+    (...)
+  }
+
+  the slowest test is the Numba scheduler which takes some time to pre-compile the functions.
+  So even when the runtime of the Numba scheduler itself is low (cf. \cref{sec:runtime}), the test will always take some time.
+
   \subsubsection{Coverage}
+
+  (coverage here)
+
+  Which may be reproduced using \texttt{pytest --cov=melon}.
+
   \subsection{Type Checking}
   Using \texttt{pyright} instead of \texttt{mypy} as it is much faster.
   \subsection{Using Appropriate Language Features}
@@ -99,7 +122,7 @@ until convergence, repeat
     pyright.........................................................\textcolor{green}{Passed} \\
     pytest-check....................................................\textcolor{green}{Passed} \\
     clang-format....................................................\textcolor{green}{Passed} \\
-    latex-format-all................................................\textcolor{green}{Passed} \\
+    latex-format-all................................................\textcolor{green}{Passed}
   }
 
   Uses \texttt{invoke} to manage common development tasks.
@@ -159,6 +182,9 @@ until convergence, repeat
   \subsection{Coole Pie-Plots mit Verteilungen}
 
   \section{Runtime Performance}
+  \label{sec:runtime}
+  The following benchmarks were all accumulated on an Intel\textregistered \, i7-5600U CPU running at \SI{2.6}{\giga\hertz} verified through 3 individual runs, keeping parameters consistent along them.
+
   \begin{minted}{python}
 In [1]: %timeit str(t.icalendar_component["uid"])
   122 µs ± 1.06 µs per loop (7 runs, 10,000 loops each)
@@ -195,20 +221,17 @@ In [4]: %timeit t._vobject_instance.contents["vtodo"][0].contents["uid"][0].valu
     \caption{Profile obtained by running \mintinline{bash}{inv profile-scheduler & grep purepython.py}.}
     \begin{tabular}{rrrrrll}
       \hline
-      ncalls  & tottime & percall & cumtime & percall & filename:lineno   & function         \\
+      \bf Ncalls & \bf Total & \bf / call & \bf Cum. & \bf / call & \bf Filename:line & \bf Function     \\
       \hline
-      1       & 0.000   & 0.000   & 14.236  & 14.236  & purepython.py:142 & schedule         \\
-      10      & 0.209   & 0.021   & 14.235  & 1.424   & purepython.py:123 & mcmcSweep        \\
-      36010   & 1.144   & 0.000   & 13.784  & 0.000   & purepython.py:97  & computeEnergy    \\
-      2196671 & 5.391   & 0.000   & 11.353  & 0.000   & purepython.py:41  & spreadTasks      \\
-      1006332 & 1.389   & 0.000   & 1.842   & 0.000   & purepython.py:27  & generateNextSlot \\
-      2196610 & 0.798   & 0.000   & 0.972   & 0.000   & purepython.py:108 & <genexpr>        \\
-      2196610 & 0.384   & 0.000   & 0.384   & 0.000   & purepython.py:106 & <genexpr>        \\
-      36000   & 0.082   & 0.000   & 0.217   & 0.000   & purepython.py:83  & permuteState     \\
-      36011   & 0.046   & 0.000   & 0.124   & 0.000   & purepython.py:19  & startingSlot     \\
-      % 61      & 0.000 & 0.000 & 0.000  & 0.000  & purepython.py:152 & <genexpr>
-      % 1       & 0.000 & 0.000 & 0.000  & 0.000  & purepython.py:71  & __init__
-      % 1       & 0.000 & 0.000 & 0.000  & 0.000  & purepython.py:14  & __init__
+      1          & 0.000     & 0.000      & 14.236   & 14.236     & purepython:142    & schedule         \\
+      10         & 0.209     & 0.021      & 14.235   & 1.424      & purepython:123    & mcmcSweep        \\
+      36010      & 1.144     & 0.000      & 13.784   & 0.000      & purepython:97     & computeEnergy    \\
+      2196671    & 5.391     & 0.000      & 11.353   & 0.000      & purepython:41     & spreadTasks      \\
+      1006332    & 1.389     & 0.000      & 1.842    & 0.000      & purepython:27     & generateNextSlot \\
+      2196610    & 0.798     & 0.000      & 0.972    & 0.000      & purepython:108    & <genexpr>        \\
+      2196610    & 0.384     & 0.000      & 0.384    & 0.000      & purepython:106    & <genexpr>        \\
+      36000      & 0.082     & 0.000      & 0.217    & 0.000      & purepython:83     & permuteState     \\
+      36011      & 0.046     & 0.000      & 0.124    & 0.000      & purepython:19     & startingSlot     \\
     \end{tabular}
   \end{table}
 

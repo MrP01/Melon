@@ -2,13 +2,13 @@
 import dataclasses
 import math
 import random
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from typing import Mapping, Sequence
 
 import numba
 from numba.typed.typedlist import List as NumbaList
 
-from .base import DAY_LENGTH, INITIAL_TEMPERATURE, SWEEP_EXPONENT, AbstractScheduler, TimeSlot
+from .base import DAY_LENGTH, INITIAL_TEMPERATURE, START_OF_DAY, SWEEP_EXPONENT, AbstractScheduler, TimeSlot
 
 State = list[int]
 
@@ -124,6 +124,6 @@ class NumbaMCMCScheduler(AbstractScheduler):
         Returns:
             Mapping[str, TimeSlot]: the resulting schedule
         """
-        start = datetime.now()  # equivalent to t = 0 for libscheduler
+        start = datetime.combine(date.today(), START_OF_DAY)  # equivalent to t = 0
         result = schedule(NumbaList(map(dataclasses.astuple, self.tasks)))
         return {t[0]: TimeSlot(start + timedelta(hours=t[1]), t[2]) for t in result}

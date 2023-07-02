@@ -2,58 +2,52 @@
 import datetime
 import pathlib
 import tempfile
+from typing import Mapping
 
+import numpy as np
 import pytest
 
 from melon.melon import Melon
-from melon.scheduler.base import AbstractScheduler, Task, generateDemoTasks
+from melon.scheduler.base import START_OF_DAY, AbstractScheduler, Task, TimeSlot, generateDemoTasks
 from melon.scheduler.cpp import CppMCMCScheduler
 from melon.scheduler.numba import NumbaMCMCScheduler
-from melon.scheduler.purepython import AvailabilityManager, MCMCScheduler
+from melon.scheduler.purepython import MCMCScheduler
 from melon.scheduler.rust import RustyMCMCScheduler
+from melon.visualise import plotConvergence
 
+MAX_CALENDARS = 3
 ALL_IMPLEMENTATIONS = (MCMCScheduler, RustyMCMCScheduler, NumbaMCMCScheduler, CppMCMCScheduler)
-
-
-class TestAvailabilityManager:
-    """Availability test class containing multiple tests as methods."""
-
-    def test_single_task_spread(self):
-        """Tests whether spreading a single task across the calendar works as expected."""
-        availability = AvailabilityManager()
-        startOfDay = datetime.datetime.combine(datetime.date.today(), availability.startOfDay)
-        spread = list(availability.spreadTasks([Task("1", 3.5, 1, 1)]))
-        assert len(spread) == 1
-        uid, slot = spread[0]
-        assert uid == "1"
-        assert slot.timestamp == startOfDay
-
-    def test_multiple_task_spread(self):
-        """Tests whether spreading multiple tasks across two days works as expected,
-        scheduling two tasks after one another and the third one for the next day.
-        """
-        availability = AvailabilityManager()
-        startOfDay = datetime.datetime.combine(datetime.date.today(), availability.startOfDay)
-        spread = list(
-            availability.spreadTasks(
-                [
-                    Task("1", 3.5, 1, 1),
-                    Task("2", 2, 7, 2),
-                    Task("3", 11, 3, 1),
-                ]
-            )
-        )
-        assert len(spread) == 3
-        assert spread[0][0] == "1"
-        assert spread[1][0] == "2"
-        assert spread[2][0] == "3"
-        assert spread[0][1].timestamp == startOfDay
-        assert spread[1][1].timestamp == startOfDay + datetime.timedelta(hours=3.5)
-        assert spread[2][1].timestamp == startOfDay + datetime.timedelta(days=1)
 
 
 class TestScheduler:
     """Class that tests various functionality of the schedulers."""
+
+    @pytest.mark.parametrize("Scheduler", ALL_IMPLEMENTATIONS)
+    def test_length(self, Scheduler: type[AbstractScheduler]):
+        """Tests whether all task were scheduled."""
+        scheduler = Scheduler(generateDemoTasks())
+        result = scheduler.schedule()
+        assert isinstance(result, Mapping)
+        assert len(result) == len(scheduler.tasks)
+
+    @pytest.mark.parametrize("Scheduler", ALL_IMPLEMENTATIONS)
+    def test_correct_format(self, Scheduler: type[AbstractScheduler]):
+        """Checks the output format of each scheduler in detail."""
+        start = datetime.datetime.combine(datetime.date.today(), START_OF_DAY)
+        scheduler = Scheduler(generateDemoTasks())
+        taskMap = scheduler.uidTaskMap()
+        result = scheduler.schedule()
+        assert isinstance(result, Mapping)
+        for uid, slot in result.items():
+            assert isinstance(uid, str)
+            assert len(uid) > 0
+            assert uid in taskMap.keys()
+            assert isinstance(slot, TimeSlot)
+            assert isinstance(slot.timestamp, datetime.datetime)
+            assert slot.timestamp >= start
+            assert isinstance(slot.duration, float)
+            assert slot.duration > 0
+            assert slot.duration == taskMap[uid].duration
 
     @pytest.mark.parametrize("Scheduler", ALL_IMPLEMENTATIONS)
     def test_priority_scheduling(self, Scheduler: type[AbstractScheduler]):
@@ -64,7 +58,7 @@ class TestScheduler:
 
     @pytest.mark.parametrize("Scheduler", ALL_IMPLEMENTATIONS)
     def test_task_too_long(self, Scheduler: type[AbstractScheduler]):
-        """Sees whether the scheduler puts high-priority tasks first."""
+        """Tests whether tasks are too long."""
         scheduler = Scheduler([Task("1", 3.5, 1, 1), Task("2", 200.0, 7, 2)])
         with pytest.raises((RuntimeError, SystemError)):
             scheduler.schedule()
@@ -72,8 +66,7 @@ class TestScheduler:
     @pytest.mark.parametrize("Scheduler", ALL_IMPLEMENTATIONS)
     def test_real_data_scheduling(self, Scheduler: type[AbstractScheduler]):
         """Schedules based on what autoInit() gives us."""
-        melon = Melon()
-        melon.max_calendars = 5
+        melon = Melon(maxCalendars=MAX_CALENDARS)
         melon.autoInit()
         scheduler = Scheduler(melon.tasksToSchedule())
         result = scheduler.schedule()
@@ -82,8 +75,14 @@ class TestScheduler:
     @pytest.mark.parametrize("Scheduler", ALL_IMPLEMENTATIONS)
     def test_schedule_and_export(self, Scheduler: type[AbstractScheduler]):
         """Runs scheduleAllAndExport() to schedule and create an ICS file."""
-        melon = Melon()
-        melon.max_calendars = 5
+        melon = Melon(maxCalendars=MAX_CALENDARS)
         melon.autoInit()
         outFolder = pathlib.Path(tempfile.gettempdir())
         melon.scheduleAllAndExport(str(outFolder / "schedule.ics"), Scheduler=Scheduler)
+
+    @pytest.mark.filterwarnings("ignore:Enum:DeprecationWarning")
+    def test_purepython_convergence_plot(self):
+        """Plots the MCMC convergence."""
+        scheduler = MCMCScheduler(generateDemoTasks())
+        scheduler.schedule()
+        plotConvergence(np.array(scheduler._log), filename=None)

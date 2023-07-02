@@ -2,7 +2,7 @@
 name = "melon-scheduler"
 version = "0.1.3"
 description = "Schedules Todos into your Calendar"
-authors = ["MrP01 <peter@waldert.at>"]
+authors = ["redacted"]
 readme = "README.md"
 packages = [{ include = "melon" }, { include = "melongui" }]
 

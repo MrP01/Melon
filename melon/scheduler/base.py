@@ -1,9 +1,10 @@
 """The scheduler algorithm"""
 import dataclasses
 import random
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
 from typing import Mapping
 
+START_OF_DAY = time(10, 0)
 DAY_LENGTH = 14
 INITIAL_TEMPERATURE = 0.2
 SWEEP_EXPONENT = -1.0
@@ -53,6 +54,14 @@ class AbstractScheduler:
             tasks (list[Task]): the tasks to be scheduled
         """
         self.tasks = tasks
+
+    def uidTaskMap(self) -> Mapping[str, Task]:
+        """Generates a dictionary for task lookup by UID.
+
+        Returns:
+            Mapping[str, Task]: the dictionary keyed by UID of each task.
+        """
+        return {task.uid: task for task in self.tasks}
 
     def schedule(self) -> Mapping[str, TimeSlot]:
         """Schedules the tasks using an MCMC procedure.

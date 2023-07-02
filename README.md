@@ -17,3 +17,5 @@ Of course there will be tests and documentation on how to set things up, use the
 An extension would be for the scheduler to learn about task properties based on user behaviour when rescheduling, etc. (detecting procrastination of an important task) and perhaps optimising suggestions based on that.
 
 As performance might become an issue for MCMC, we will attempt the use of low-level languages such as C++ in combination with tools such as pybind11, to outsource short performance-critical code sections away from Python to another language?
+
+The task check icon is the logo of the \textit{Tasks.org} Free and Open Source Android App, which may be found [here](https://github.com/tasks/tasks/tree/main/graphics).

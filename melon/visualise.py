@@ -28,7 +28,7 @@ def priorityChart(data, title):
         ax.grid(True)
 
 
-def plotConvergence(data: np.ndarray, filename: str):
+def plotConvergence(data: np.ndarray, filename: str | None):
     """Plots convergence data to a file
 
     Args:
@@ -44,4 +44,5 @@ def plotConvergence(data: np.ndarray, filename: str):
     axes.plot(data[:, 2])
     axes.set_xlabel("Iteration")
     axes.set_ylabel("$E_{var}$")
-    fig.savefig(filename)  # type: ignore
+    if filename is not None:
+        fig.savefig(filename)  # type: ignore

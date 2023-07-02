@@ -8,8 +8,17 @@ except ImportError:  # pragma: no cover
 
 CONFIG_FOLDER = pathlib.Path.home() / ".config" / "melon"
 CONFIG_FOLDER.mkdir(exist_ok=True)
+CONFIG_PATH = CONFIG_FOLDER / "config.toml"
 
 CONFIG = {"client": {"url": "http://localhost:8000/dav/user/calendars/", "username": None, "password": None}}
-if (CONFIG_FOLDER / "config.toml").exists():
-    with open(CONFIG_FOLDER / "config.toml", "rb") as f:
-        CONFIG = tomllib.load(f)
+
+
+def load_config():
+    """Loads, or re-loads, the configuration file."""
+    global CONFIG
+    if CONFIG_PATH.exists():
+        with open(CONFIG_PATH, "rb") as f:
+            CONFIG = tomllib.load(f)
+
+
+load_config()

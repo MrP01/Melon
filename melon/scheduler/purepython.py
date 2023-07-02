@@ -1,10 +1,10 @@
 """The scheduler algorithm"""
 import math
 import random
-from datetime import date, datetime, time, timedelta
+from datetime import date, datetime, timedelta
 from typing import Iterable, Mapping
 
-from .base import DAY_LENGTH, INITIAL_TEMPERATURE, SWEEP_EXPONENT, AbstractScheduler, Task, TimeSlot
+from .base import DAY_LENGTH, INITIAL_TEMPERATURE, START_OF_DAY, SWEEP_EXPONENT, AbstractScheduler, Task, TimeSlot
 
 
 class AvailabilityManager:
@@ -12,7 +12,7 @@ class AvailabilityManager:
 
     def __init__(self) -> None:
         """Initialises the availability manager according to defaults."""
-        self.startOfDay = time(10, 0)  # start at 10am
+        self.startOfDay = START_OF_DAY  # start at 10am
         self.defaultDayLength = DAY_LENGTH  # going all the way to 2am
 
     def startingSlot(self) -> TimeSlot:
