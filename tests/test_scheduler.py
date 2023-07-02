@@ -85,4 +85,4 @@ class TestScheduler:
         """Plots the MCMC convergence."""
         scheduler = MCMCScheduler(generateDemoTasks())
         scheduler.schedule()
-        plotConvergence(np.array(scheduler.energyLog), filename=None)
+        plotConvergence(np.array([scheduler.energyLog]), ["label"], filename=None)

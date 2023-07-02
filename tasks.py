@@ -87,15 +87,22 @@ def start_mock_server(ctx: Context):
 
 
 @task()
-def plot_convergence(ctx: Context):
+def plot_convergence(ctx: Context, N=40):
     """Plots scheduler convergence to a file.
 
     Args:
         ctx (Context): Invoke Execution Context
     """
-    scheduler = MCMCScheduler(generateManyDemoTasks(40))
-    scheduler.schedule()
-    plotConvergence(np.array(scheduler.energyLog), str(RESULTS / "convergence.pdf"))
+    logs = []
+    tasks = generateManyDemoTasks(N)
+    exponents = (-1.0, -1.5, -2.0, -3.0)
+    for sweepExp in exponents:
+        scheduler = MCMCScheduler(tasks)
+        scheduler.sweepExponent = sweepExp
+        scheduler.schedule()
+        logs.append(scheduler.energyLog)
+    plotConvergence(np.array(logs), [f"q = {e}" for e in exponents], str(RESULTS / "convergence.pdf"))
+    ctx.run(f"xdg-open {RESULTS / 'convergence.pdf'}")
 
 
 @task

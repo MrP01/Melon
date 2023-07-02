@@ -6,7 +6,7 @@ from typing import Mapping
 
 START_OF_DAY = time(10, 0)
 DAY_LENGTH = 14
-INITIAL_TEMPERATURE = 0.2
+INITIAL_TEMPERATURE = 0.4
 SWEEP_EXPONENT = -1.0
 
 
@@ -21,6 +21,15 @@ class Task:
     due: datetime | None  # when the task is due
 
     def asTuple(self, start: datetime) -> tuple[str, float, int, int, float]:
+        """Returns a low-level representation of this instance.
+
+        Args:
+            start (datetime): Start time reference for the due date
+
+        Returns:
+            tuple[str, float, int, int, float]: low-level representation (uid, duration, priority, location, due).
+                                                due is 0 if there is no due date.
+        """
         return (
             self.uid,
             self.duration,
@@ -83,7 +92,11 @@ class AbstractScheduler:
 
 
 def generateDemoTasks() -> list[Task]:
-    """Generates a fixed set of demo tasks."""
+    """Generates a fixed set of demo tasks.
+
+    Returns:
+        list[Task]: the generated list of tasks
+    """
     now = datetime.now()
     return [
         Task("1", 3.5, 1, 1, now + timedelta(hours=3)),
@@ -94,8 +107,17 @@ def generateDemoTasks() -> list[Task]:
     ]
 
 
-def generateManyDemoTasks(N: int) -> list[Task]:
-    """Generates a larger set of randomly generated demo tasks."""
+def generateManyDemoTasks(N: int, proportionOfDueDates: float = 0.5) -> list[Task]:
+    """Generates a larger set of randomly generated demo tasks.
+
+    Args:
+        N (int): Number of tasks to be generated
+        proportionOfDueDates (float, optional): what percentage (from 0 to 1) of tasks should have a due date.
+                                                Defaults to 0.5.
+
+    Returns:
+        list[Task]: the list of tasks
+    """
     now = datetime.now()
     return [
         Task(
@@ -103,7 +125,7 @@ def generateManyDemoTasks(N: int) -> list[Task]:
             duration=random.randint(1, 20) / 2,
             priority=random.randint(1, 9),
             location=random.randint(0, 2),
-            due=now + timedelta(hours=random.randint(10, N * 5)) if random.random() < 0.5 else None,
+            due=now + timedelta(hours=random.randint(10, N * 5)) if random.random() < proportionOfDueDates else None,
         )
         for i in range(N)
     ]

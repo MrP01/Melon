@@ -132,7 +132,23 @@ until convergence, repeat
     latex-format-all................................................\textcolor{green}{Passed}
   }
 
-  Uses \texttt{invoke} to manage common development tasks.
+  Uses \texttt{invoke} to manage common development tasks. Running \bash{inv -l} yields the following selection of tasks:
+
+  \begin{table}[H]
+    \centering
+    \caption{Invoke Tasks}
+    \begin{tblr}{ll}
+      \texttt{build-docs}              & {Builds documentation using Sphinx.} \\
+      \texttt{compare-runtime}         & {Compares runtime of the different scheduling implementations.} \\
+      \texttt{compile}                 & {Assuming a full setup, compiles the low-level implementations of the scheduler algorithm in C++ and Rust.}\\
+      \texttt{ipython-shell}           & {Starts an IPython shell with Melon initialised.} \\
+      \texttt{plot-convergence}        & {Plots scheduler convergence to a file.} \\
+      \texttt{plot-runtime-complexity} & {Simulates with a varying number of tasks and plots runtime complexity.} \\
+      \texttt{profile-scheduler}       & {Profile the pure Python MCMC Scheduler.} \\
+      \texttt{schedule-and-export}     & {Run the MCMC scheduler and export the resulting events as an ICS file.} \\
+      \texttt{start-mock-server}       & {Starts a Xandikos (CalDAV) server on port 8000.}
+    \end{tblr}
+  \end{table}
 
   Also have \texttt{nitpick} to synchronise linter configuration across projects.
 

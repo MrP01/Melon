@@ -79,6 +79,8 @@ class MCMCScheduler(AbstractScheduler):
         self.state = tuple(range(len(self.tasks)))  # initialise in order
         self.temperature = 1.0
         self.energyLog = []
+        self.sweepExponent = SWEEP_EXPONENT
+        self.constantEnergyMinimum = sum(t.duration for t in self.tasks) + sum((n) for n in self.state)
 
     def permuteState(self) -> State:
         """Proposes a new state to use instead of the old state.
@@ -105,22 +107,21 @@ class MCMCScheduler(AbstractScheduler):
         """
         spread = list(self.availability.spreadTasks(self.tasks[i] for i in state))
         totalTimePenalty = (spread[-1][1].end - spread[0][1].timestamp).total_seconds() / 3600
-        priorityPenalty = sum(
-            math.sqrt(position) * self.tasks[state[position]].priority for position in range(len(state))
-        )
+        priorityPenalty = sum((position) * self.tasks[state[position]].priority for position in range(len(state)))
         commutePenalty = 0.0
         onTimePenalty = 0.0
         for position in range(1, len(state)):
             previous = self.tasks[state[position - 1]]
             current = self.tasks[state[position]]
             if current.due is not None and current.due < spread[position][1].end:
-                onTimePenalty += 100
+                onTimePenalty += 100.0
             if previous.location == 0 or current.location == 0:
                 continue  # hybrid tasks can be done from anywhere, so do not penalise
             if previous.location != current.location:
-                commutePenalty += 4
-        print(totalTimePenalty, priorityPenalty, commutePenalty, onTimePenalty)
-        return totalTimePenalty + priorityPenalty + commutePenalty
+                commutePenalty += 30.0
+        total = totalTimePenalty + priorityPenalty + commutePenalty + onTimePenalty - self.constantEnergyMinimum
+        # print(totalTimePenalty, priorityPenalty, commutePenalty, onTimePenalty, total)
+        return total
 
     def mcmcSweep(self):
         """Performs a full MCMC sweep"""
@@ -147,8 +148,8 @@ class MCMCScheduler(AbstractScheduler):
         Returns:
             Mapping[str, TimeSlot]: the resulting map of Tasks to TimeSlots
         """
-        for k in range(1, 11):
-            self.temperature = INITIAL_TEMPERATURE * k**SWEEP_EXPONENT
+        for k in range(1, 16):
+            self.temperature = INITIAL_TEMPERATURE * k**self.sweepExponent
             self.mcmcSweep()
         logging.info("Final State of the MCMC simulation", self.state)
         return dict(self.availability.spreadTasks(self.tasks[i] for i in self.state))
