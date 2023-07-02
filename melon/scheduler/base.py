@@ -28,7 +28,7 @@ class Task:
 
         Returns:
             tuple[str, float, int, int, float]: low-level representation (uid, duration, priority, location, due).
-                                                due is 0 if there is no due date.
+                due is 0 if there is no due date.
         """
         return (
             self.uid,

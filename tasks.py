@@ -87,14 +87,16 @@ def start_mock_server(ctx: Context):
 
 
 @task()
-def plot_convergence(ctx: Context, N=40):
+def plot_convergence(ctx: Context, N=40, proportion=0.5):
     """Plots scheduler convergence to a file.
 
     Args:
-        ctx (Context): Invoke Execution Context
+        ctx (Context): Invoke Execution Context.
+        N (int): Number of tasks to be generated.
+        proportionOfDueDates (float, optional): what percentage (from 0 to 1) of tasks should have a due date.
     """
     logs = []
-    tasks = generateManyDemoTasks(N)
+    tasks = generateManyDemoTasks(N, proportion)
     exponents = (-1.0, -1.5, -2.0, -3.0)
     for sweepExp in exponents:
         scheduler = MCMCScheduler(tasks)

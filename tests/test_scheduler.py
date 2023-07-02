@@ -13,7 +13,7 @@ from melon.scheduler.cpp import CppMCMCScheduler
 from melon.scheduler.numba import NumbaMCMCScheduler
 from melon.scheduler.purepython import MCMCScheduler
 from melon.scheduler.rust import RustyMCMCScheduler
-from melon.visualise import plotConvergence
+from melon.visualise import plotConvergence, radarChart
 
 MAX_CALENDARS = 3
 ALL_IMPLEMENTATIONS = (MCMCScheduler, RustyMCMCScheduler, NumbaMCMCScheduler, CppMCMCScheduler)
@@ -86,3 +86,10 @@ class TestScheduler:
         scheduler = MCMCScheduler(generateDemoTasks())
         scheduler.schedule()
         plotConvergence(np.array([scheduler.energyLog]), ["label"], filename=None)
+
+    @pytest.mark.filterwarnings("ignore:Enum:DeprecationWarning")
+    def test_radar_chart(self):
+        """Plots the resulting radar chart."""
+        # scheduler = MCMCScheduler(generateDemoTasks())
+        # scheduler.schedule()
+        radarChart((0.3, 0.5, 0.8), "Chart Title")
