@@ -69,9 +69,12 @@ repos:
         pass_filenames: false
   - repo: local
     hooks:
-      - id: pytest-check
-        name: pytest-check
+      - id: pytest
+        name: pytest
         entry: pytest
+        args:
+          - --cov=melon
+          - --cov-report=xml
         language: system
         pass_filenames: false
         always_run: true
