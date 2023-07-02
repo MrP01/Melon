@@ -5,8 +5,11 @@ import sys
 from datetime import date, datetime, timedelta
 from typing import Mapping
 
-sys.path.append(str(pathlib.Path(__file__).resolve().parent.parent.parent / "build"))
-import libcppscheduler
+try:
+    import libcppscheduler
+except ImportError:
+    sys.path.append(str(pathlib.Path(__file__).resolve().parent.parent.parent / "build"))
+    import libcppscheduler
 
 from .base import START_OF_DAY, AbstractScheduler, TimeSlot
 
