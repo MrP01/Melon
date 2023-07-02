@@ -18,6 +18,8 @@
 \newacronym{ode}{ODE}{Ordinary Differential Equation}
 \newacronym{pde}{PDE}{Partial Differential Equation}
 \newacronym{gui}{GUI}{Graphical User Interface}
+\newacronym{ci}{CI}{Continuous Integration}
+\newacronym{cd}{CD}{Continuous Delivery}
 
 \begin{document}
   \pagestyle{plain}
@@ -108,7 +110,7 @@ until convergence, repeat
   Using \texttt{autoflake} and \texttt{pyupgrade}.
   Used \texttt{logging}.
   \subsection{Maintaining Code Quality}
-  Using \texttt{pre-commit} and GitHub Actions CI/CD.
+  Using \texttt{pre-commit} and GitHub Actions \gls{ci} / \gls{cd}, or simply CI/CD.
 
   \subsection{Publishing to PyPi}
   Published \href{https://pypi.org/project/melon-scheduler/}{here}.
@@ -137,7 +139,7 @@ until convergence, repeat
   \begin{table}[H]
     \centering
     \caption{Invoke Tasks}
-    \begin{tblr}{ll}
+    \begin{tblr}{colspec={X[5cm] X[\linewidth - 6cm]}}
       \texttt{build-docs}              & {Builds documentation using Sphinx.} \\
       \texttt{compare-runtime}         & {Compares runtime of the different scheduling implementations.} \\
       \texttt{compile}                 & {Assuming a full setup, compiles the low-level implementations of the scheduler algorithm in C++ and Rust.}\\
@@ -162,7 +164,7 @@ until convergence, repeat
 
   \begin{table}[H]
     \centering
-    \caption{RESULT: PASSED (minimum: 80.0\%, actual: 100.0\%)}
+    \caption{Result: \textcolor{green}{\bf Passed} (minimum: 80.0\%, actual: 100.0\%)}
     \begin{tabular}{lllll}
       \hline
       \bf Name                        & \bf Total & \bf Miss & \bf Cover & \bf Cover                 \\
@@ -271,7 +273,7 @@ In [4]: %timeit t._vobject_instance.contents["vtodo"][0].contents["uid"][0].valu
     \caption{Convergence}
   \end{figure}
 
-  Numba Compilation time: 2.5625428539933637
+  Numba Compilation time: 3.212771240971051
 
   \begin{table}[H]
     \vspace{0.5cm}
@@ -286,12 +288,12 @@ In [4]: %timeit t._vobject_instance.contents["vtodo"][0].contents["uid"][0].valu
       \hline
       \bf Implementation & \bf Language & \bf Runtime / seconds \\
       \hline
-      MCMCScheduler      & Python & 16.6180 \\
-      NumbaMCMCScheduler & Python & 1.3117 \\
+      MCMCScheduler      & Python & 31.3887 \\
+      NumbaMCMCScheduler & Python & 1.9335 \\
       \hline
-      RustyMCMCScheduler & Rust & 0.3660 \\
+      RustyMCMCScheduler & Rust & 0.4034 \\
       \hline
-      CppMCMCScheduler   & C++ & 0.1513
+      CppMCMCScheduler   & C++ & 0.4062
       \hline
     \end{tblr}
     \label{table:runtime}

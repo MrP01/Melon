@@ -122,7 +122,7 @@ def generateManyDemoTasks(N: int, proportionOfDueDates: float = 0.5) -> list[Tas
     return [
         Task(
             uid=str(i),
-            duration=random.randint(1, 20) / 2,
+            duration=random.randint(1, 2 * DAY_LENGTH) / 2,
             priority=random.randint(1, 9),
             location=random.randint(0, 2),
             due=now + timedelta(hours=random.randint(10, N * 5)) if random.random() < proportionOfDueDates else None,

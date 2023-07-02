@@ -80,7 +80,8 @@ class MCMCScheduler {
       if (thisTask.location != previousTask.location)
         commutePenalty += 30.0;
     }
-    std::cout << timePenalty << ", " << priorityPenalty << ", " << commutePenalty << ", " << onTimePenalty << std::endl;
+    // std::cout << timePenalty << ", " << priorityPenalty << ", " << commutePenalty << ", " << onTimePenalty <<
+    // std::endl;
     return timePenalty + priorityPenalty + commutePenalty + onTimePenalty;
   }
 

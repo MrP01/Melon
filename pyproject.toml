@@ -52,7 +52,7 @@ style = [
 exclude = ["stuff"]
 
 [tool.coverage.run]
-omit = ["melon/scheduler/numba.py"]
+omit = ["melon/scheduler/numba.py"]  # because numba code is not detected as being used by coverage.py
 
 [build-system]
 requires = ["poetry-core"]
