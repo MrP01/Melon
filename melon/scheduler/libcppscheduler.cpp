@@ -5,8 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-static const double INITIAL_TEMPERATURE = 0.2;
-static const double SWEEP_EXPONENT = -1.0;
+static const double INITIAL_TEMPERATURE = 0.4;
+static const double SWEEP_EXPONENT = -2.0;
 static const size_t DAY_LENGTH = 14;
 
 namespace py = pybind11;
@@ -71,27 +71,26 @@ class MCMCScheduler {
     for (size_t index = 1; index < order.size(); index++) {
       auto thisTask = tasks[order[index]];
       auto thisSlot = spread[index];
-      priorityPenalty += sqrt(index) * thisTask.priority;
+      priorityPenalty += index * thisTask.priority;
       if (thisTask.due != 0.0 && thisTask.due < thisSlot.start + thisSlot.duration)
-        onTimePenalty += 100;
+        onTimePenalty += 100.0;
       auto previousTask = tasks[order[index - 1]];
       if (thisTask.location == 0 || previousTask.location == 0)
         continue;
       if (thisTask.location != previousTask.location)
-        commutePenalty += 4;
+        commutePenalty += 30.0;
     }
-    return timePenalty + priorityPenalty;
+    std::cout << timePenalty << ", " << priorityPenalty << ", " << commutePenalty << ", " << onTimePenalty << std::endl;
+    return timePenalty + priorityPenalty + commutePenalty + onTimePenalty;
   }
 
   State permuteState() {
     State proposal = state; // copy current state
     size_t cityA_ = rand() % tasks.size();
     size_t cityB_ = rand() % tasks.size();
-    size_t cityA = std::min(cityA_, cityB_);
-    size_t cityB = std::max(cityA_, cityB_);
-    for (size_t i = 0; i <= cityB - cityA; i++)
-      proposal[cityA + i] = state[cityB - i];
-    return state;
+    proposal[cityA_] = state[cityB_];
+    proposal[cityB_] = state[cityA_];
+    return proposal;
   }
 
   void mcmcSweep(size_t steps, bool print_raw = true) {
@@ -101,6 +100,8 @@ class MCMCScheduler {
       State proposal = permuteState();
       double delta = computeEnergy(proposal) - energy;
       double acceptanceProbability = std::min(1.0, std::exp(-delta / (energy * temperature)));
+      // std::cout << "AccProb: " << acceptanceProbability << " Temp: " << temperature << " State: " << state[0] << ", "
+      //           << state[1] << ", " << state[2] << std::endl;
       if (((double)rand() / RAND_MAX) < acceptanceProbability) {
         state = proposal;
         energy += delta;
@@ -111,7 +112,7 @@ class MCMCScheduler {
   void mcmcSimulate(size_t iterations) {
     for (size_t j = 0; j < iterations; j++) {
       mcmcSweep(tasks.size() * tasks.size());
-      temperature = INITIAL_TEMPERATURE * std::pow(j + 1, -SWEEP_EXPONENT);
+      temperature = INITIAL_TEMPERATURE * std::pow(j + 1, SWEEP_EXPONENT);
     }
   }
 };
@@ -127,7 +128,7 @@ py::list schedule(const py::list &tasks) {
     // std::cout << task.uid << ": " << task.duration << ", " << task.priority << ", " << task.location << std::endl;
   }
   scheduler.initState();
-  scheduler.mcmcSimulate(10);
+  scheduler.mcmcSimulate(15);
   auto result = py::list();
   auto spread = scheduler.spreadTasks(scheduler.state);
   for (size_t i = 0; i < spread.size(); i++) {
@@ -137,6 +138,8 @@ py::list schedule(const py::list &tasks) {
 }
 
 PYBIND11_MODULE(libcppscheduler, m) {
+  srand(time(NULL)); // seed the random number generator
+
   m.doc() = "Schedule tasks";
   m.def("schedule", &schedule, "Schedule tasks");
 }

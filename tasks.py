@@ -6,6 +6,7 @@ import collections
 import cProfile
 import pathlib
 import pstats
+import shutil
 import time
 
 import IPython
@@ -19,15 +20,11 @@ from traitlets.config import Config
 
 from melon.melon import Melon
 from melon.scheduler.base import generateDemoTasks, generateManyDemoTasks
-from melon.scheduler.cpp import CppMCMCScheduler
-from melon.scheduler.numba import NumbaMCMCScheduler
 from melon.scheduler.purepython import MCMCScheduler
-from melon.scheduler.rust import RustyMCMCScheduler
 from melon.visualise import plotConvergence
 
 HOME = pathlib.Path.home()
 RESULTS = pathlib.Path(__file__).parent / "report" / "results"
-ALL_IMPLEMENTATIONS = (MCMCScheduler, RustyMCMCScheduler, NumbaMCMCScheduler, CppMCMCScheduler)
 
 
 @task()
@@ -114,6 +111,13 @@ def compare_runtime(ctx: Context, N=80):
     Args:
         ctx (Context): Invoke Execution Context
     """
+    from melon.scheduler.cpp import CppMCMCScheduler
+    from melon.scheduler.numba import NumbaMCMCScheduler
+    from melon.scheduler.purepython import MCMCScheduler
+    from melon.scheduler.rust import RustyMCMCScheduler
+
+    ALL_IMPLEMENTATIONS = (MCMCScheduler, RustyMCMCScheduler, NumbaMCMCScheduler, CppMCMCScheduler)
+
     tasks = generateManyDemoTasks(N)
     start = time.monotonic()
     NumbaMCMCScheduler(generateDemoTasks()).schedule()  # warm-up / pre-compile Numba
@@ -191,5 +195,5 @@ def compile(ctx: Context):
     with ctx.cd("build"):
         ctx.run("make -j4")
     print("Compiled C++ implementation.")
-    ctx.run("cp target/release/libscheduler.so melon/scheduler/libscheduler.so")
-    ctx.run("cp build/libcppscheduler.cpython-311-x86_64-linux-gnu.so melon/scheduler/libcppscheduler.so")
+    shutil.copy("target/release/libscheduler.so", "melon/scheduler/libscheduler.so")
+    shutil.copy("build/libcppscheduler.cpython-311-x86_64-linux-gnu.so", "melon/scheduler/libcppscheduler.so")

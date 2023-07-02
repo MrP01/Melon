@@ -7,7 +7,7 @@ from typing import Mapping
 START_OF_DAY = time(10, 0)
 DAY_LENGTH = 14
 INITIAL_TEMPERATURE = 0.4
-SWEEP_EXPONENT = -1.0
+SWEEP_EXPONENT = -2.0
 
 
 @dataclasses.dataclass

@@ -1,6 +1,7 @@
 """Tests for the scheduler algorithm."""
 import datetime
 import pathlib
+import random
 import tempfile
 from typing import Mapping
 
@@ -52,9 +53,15 @@ class TestScheduler:
     @pytest.mark.parametrize("Scheduler", ALL_IMPLEMENTATIONS)
     def test_priority_scheduling(self, Scheduler: type[AbstractScheduler]):
         """Sees whether the scheduler puts high-priority tasks first."""
-        scheduler = Scheduler(generateDemoTasks())
+        tasks = [Task(str(i), 1.0, i, 0, None) for i in range(1, 5)]
+        random.shuffle(tasks)
+        scheduler = Scheduler(tasks)
         result = scheduler.schedule()
         assert len(result) == len(scheduler.tasks)
+        ordered = sorted(scheduler.tasks, key=lambda t: t.priority, reverse=True)
+        uidList = [uid for uid in sorted(result.keys(), key=lambda uid: result[uid].timestamp)]
+        expectedUidList = [t.uid for t in ordered]
+        assert uidList == expectedUidList
 
     @pytest.mark.parametrize("Scheduler", ALL_IMPLEMENTATIONS)
     def test_task_too_long(self, Scheduler: type[AbstractScheduler]):
@@ -90,6 +97,4 @@ class TestScheduler:
     @pytest.mark.filterwarnings("ignore:Enum:DeprecationWarning")
     def test_radar_chart(self):
         """Plots the resulting radar chart."""
-        # scheduler = MCMCScheduler(generateDemoTasks())
-        # scheduler.schedule()
         radarChart((0.3, 0.5, 0.8), "Chart Title")

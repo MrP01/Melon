@@ -1,5 +1,5 @@
 extern crate cpython;
-extern crate rand;
+use rand::Rng;
 
 use cpython::{py_fn, py_module_initializer, PyResult, Python};
 
@@ -19,8 +19,13 @@ struct TimeSlot {
   duration: f32,  // in hours
 }
 
-fn permute_state(state: Vec<usize>) -> Vec<usize> {
-  return state;
+fn permute_state(state: &mut Vec<usize>) {
+  let mut rng = rand::thread_rng();
+  let index_a = rng.gen_range(0..state.len());
+  let index_b = rng.gen_range(0..state.len());
+  let value_at_a = state[index_a];
+  state[index_a] = state[index_b];
+  state[index_b] = value_at_a;
 }
 
 fn generate_next_working_slot(previous: TimeSlot) -> TimeSlot {
@@ -78,7 +83,7 @@ fn compute_energy(tasks: &Vec<Task>, state: &Vec<usize>) -> f64 {
       continue;
     }
     if previous_task.location != this_task.location {
-      commute_penalty += 10.0;
+      commute_penalty += 30.0;
     }
   }
   println!(
@@ -93,7 +98,8 @@ fn mcmc_sweep(tasks: &Vec<Task>, initial_state: Vec<usize>, temperature: f64) ->
   let mut state = initial_state;
   let mut energy = compute_energy(&tasks, &state);
   for _i in 0..n * n {
-    let new_state = permute_state(state.clone());
+    let mut new_state = state.clone();
+    permute_state(&mut new_state);
     let delta = compute_energy(&tasks, &new_state) - energy;
     let acceptance_probability = (-delta / (energy * temperature)).exp();
     if rand::random::<f64>() < acceptance_probability {

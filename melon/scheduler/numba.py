@@ -79,8 +79,9 @@ def computeEnergy(tasks: Sequence[tuple[str, float, int, int, float]], state: St
         if previous[3] == 0 or current[3] == 0:
             continue  # hybrid tasks can be done from anywhere, so do not penalise
         if previous[3] != current[3]:
-            commutePenalty += 4
-    return totalTimePenalty + priorityPenalty
+            commutePenalty += 30.0
+    print(totalTimePenalty, priorityPenalty, commutePenalty, onTimePenalty)
+    return totalTimePenalty + priorityPenalty + commutePenalty + onTimePenalty
 
 
 @numba.njit()
