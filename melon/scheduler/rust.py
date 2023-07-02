@@ -1,14 +1,17 @@
 """The scheduler algorithm"""
 import dataclasses
+import logging
 import pathlib
 import sys
 from datetime import date, datetime, timedelta
 from typing import Mapping
 
 try:
-    import libscheduler
+    from melon.scheduler import libscheduler
 except ImportError:
-    sys.path.append(str(pathlib.Path(__file__).resolve().parent.parent.parent / "target" / "release"))
+    importPath = str(pathlib.Path(__file__).resolve().parent.parent.parent / "target" / "release")
+    logging.info(f"Could not find packaged .so file, falling back to {importPath} directory")
+    sys.path.append(importPath)
     import libscheduler
 
 from .base import START_OF_DAY, AbstractScheduler, TimeSlot

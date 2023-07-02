@@ -1,6 +1,7 @@
-# Melon UI
+# Melon Task Scheduler + UI
 
-A CalDav Task Application written in Qt6.
+A CalDav Todo-List (/ Task-Scheduling) Application that uses Markov chain Monte-Carlo to optimise a task schedule.
+It also features a User Interface written with Qt6.
 
 Melon is a Python package on a Markov chain Monte-Carlo (MCMC), using Metropolis-Hastings with Simulated Annealing, optimisation of task scheduling.
 The idea would be to automatically schedule a set of tasks into a calendar based on due date, duration estimate (perhaps dynamically updated), task priority, associated project affiliation and most importantly, location.

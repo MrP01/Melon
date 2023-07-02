@@ -5,7 +5,9 @@ import numpy as np
 
 
 def priorityChart(data, title):
-    """Plots a helpful priority chart
+    """Plots a helpful priority chart.
+
+    Adapted from https://gist.github.com/sausheong/3997c7ba8f42278866d2d15f9e63f7ad.
 
     Args:
         data (): data
