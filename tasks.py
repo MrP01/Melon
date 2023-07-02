@@ -168,3 +168,19 @@ def build_docs(ctx: Context):
         ctx (Context): Invoke Execution Context
     """
     ctx.run("sphinx-build -M latexpdf docs/ build/docs/")
+
+
+@task()
+def compile(ctx: Context):
+    """Assuming a full setup, compiles the low-level implementations of the scheduler algorithm in C++ and Rust.
+
+    Args:
+        ctx (Context): Invoke Execution Context
+    """
+    ctx.run("cargo build --release")
+    print("Compiled Rust implementation.")
+    with ctx.cd("build"):
+        ctx.run("make -j4")
+    print("Compiled C++ implementation.")
+    ctx.run("cp target/release/libscheduler.so melon/scheduler/libscheduler.so")
+    ctx.run("cp build/libcppscheduler.cpython-311-x86_64-linux-gnu.so melon/scheduler/libcppscheduler.so")

@@ -108,16 +108,18 @@ class MCMCScheduler(AbstractScheduler):
         priorityPenalty = sum(
             math.sqrt(position) * self.tasks[state[position]].priority for position in range(len(state))
         )
-        commutePenalty = 0
+        commutePenalty = 0.0
+        onTimePenalty = 0.0
         for position in range(1, len(state)):
             previous = self.tasks[state[position - 1]]
             current = self.tasks[state[position]]
+            if current.due is not None and current.due < spread[position][1].end:
+                onTimePenalty += 100
             if previous.location == 0 or current.location == 0:
                 continue  # hybrid tasks can be done from anywhere, so do not penalise
             if previous.location != current.location:
                 commutePenalty += 4
-        allOnTime = True  # TODO: check with due date
-        # print(totalTimePenalty, priorityPenalty, commutePenalty)
+        print(totalTimePenalty, priorityPenalty, commutePenalty, onTimePenalty)
         return totalTimePenalty + priorityPenalty + commutePenalty
 
     def mcmcSweep(self):

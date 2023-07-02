@@ -1,6 +1,6 @@
 from typing import Iterable
 
-def schedule(tasks: Iterable[tuple[str, float, int, int]]) -> Iterable[tuple[str, float, float]]:
+def schedule(tasks: Iterable[tuple[str, float, int, int, float]]) -> Iterable[tuple[str, float, float]]:
     """Schedules the given tasks in low-level representation into calendar.
 
     Args:

@@ -11,6 +11,7 @@ struct Task {
   duration: f32, // in hours
   priority: u32,
   location: u32,
+  due: f32, // in hours
 }
 
 struct TimeSlot {
@@ -65,18 +66,26 @@ fn compute_energy(tasks: &Vec<Task>, state: &Vec<usize>) -> f64 {
   let priority_penalty: u32 = (0..state.len())
     .map(|i| (i as u32) * tasks[state[i] as usize].priority)
     .sum();
-  let mut commute_penalty: u32 = 0;
+  let mut commute_penalty: f64 = 0.0;
+  let mut on_time_penalty: f64 = 0.0;
   for index in 1..state.len() {
     let previous_task = &tasks[state[index - 1]];
     let this_task = &tasks[state[index]];
+    if this_task.due != 0.0 && this_task.due < spread[index].1.timestamp + spread[index].1.duration {
+      on_time_penalty += 100.0;
+    }
     if previous_task.location == 0 || this_task.location == 0 {
       continue;
     }
     if previous_task.location != this_task.location {
-      commute_penalty += 1;
+      commute_penalty += 10.0;
     }
   }
-  return time_penalty + priority_penalty as f64 + commute_penalty as f64;
+  println!(
+    "Penalties {}, {}, {}, {}",
+    time_penalty, priority_penalty, commute_penalty, on_time_penalty
+  );
+  return time_penalty + priority_penalty as f64 + commute_penalty + on_time_penalty;
 }
 
 fn mcmc_sweep(tasks: &Vec<Task>, initial_state: Vec<usize>, temperature: f64) -> Vec<usize> {
@@ -104,7 +113,7 @@ fn schedule(tasks: &Vec<Task>) -> Vec<(String, TimeSlot)> {
   return spread_tasks(&tasks, &state);
 }
 
-fn py_schedule(_py: Python, tasks: Vec<(String, f32, u32, u32)>) -> PyResult<Vec<(String, f32, f32)>> {
+fn py_schedule(_py: Python, tasks: Vec<(String, f32, u32, u32, f32)>) -> PyResult<Vec<(String, f32, f32)>> {
   let my_tasks: Vec<Task> = tasks
     .iter()
     .map(|x| Task {
@@ -112,6 +121,7 @@ fn py_schedule(_py: Python, tasks: Vec<(String, f32, u32, u32)>) -> PyResult<Vec
       duration: x.1,
       priority: x.2,
       location: x.3,
+      due: x.4,
     })
     .collect();
   let calendar = schedule(&my_tasks);
@@ -127,7 +137,7 @@ py_module_initializer!(libscheduler, initlibscheduler, PyInit_scheduler, |py, m|
   m.add(
     py,
     "schedule",
-    py_fn!(py, py_schedule(tasks: Vec<(String, f32, u32, u32)>)),
+    py_fn!(py, py_schedule(tasks: Vec<(String, f32, u32, u32, f32)>)),
   )?;
   Ok(())
 });

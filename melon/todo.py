@@ -66,7 +66,7 @@ class Todo(caldav.Todo):
     def dueDate(self) -> datetime.date | None:
         """
         Returns:
-            (datetime.datetime | datetime.date | None):
+            (datetime.date | None):
         """
         if "due" in self.vtodo.contents:
             due = self.vtodo.contents["due"][0].value  # type: ignore
@@ -90,12 +90,24 @@ class Todo(caldav.Todo):
     def dueTime(self) -> datetime.time | None:
         """
         Returns:
-            (datetime.datetime | datetime.date | None):
+            (datetime.time | None):
         """
         if "due" in self.vtodo.contents:
             due = self.vtodo.contents["due"][0].value  # type: ignore
             if isinstance(due, datetime.datetime):
                 return due.time()
+
+    @property
+    def dueDateTime(self) -> datetime.datetime | None:
+        """
+        Returns:
+            (datetime.datetime | None):
+        """
+        if "due" in self.vtodo.contents:
+            due = self.vtodo.contents["due"][0].value  # type: ignore
+            if isinstance(due, datetime.date):
+                return datetime.datetime.combine(due, datetime.time())
+            return due
 
     @property
     def uid(self) -> str | None:
@@ -179,7 +191,7 @@ class Todo(caldav.Todo):
             location = 2
         match = re.search(r"\b([\d\,\.])+h\b", self.summary)
         hours = float(match.group(1)) if match else 1.0
-        return Task(self.uid, hours, self.priority, location)
+        return Task(self.uid, hours, self.priority, location, self.dueDateTime)
 
     def __lt__(self, other: "Todo") -> bool:
         """Compares two todos in terms of ordering

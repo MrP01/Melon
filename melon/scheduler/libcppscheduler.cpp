@@ -17,6 +17,7 @@ struct Task {
   float duration;
   int priority;
   int location;
+  float due;
 };
 
 struct SpreadResult {
@@ -59,12 +60,27 @@ class MCMCScheduler {
     return schedule;
   }
 
-  double getEnergy(State order) {
+  double computeEnergy(State order) {
     auto spread = spreadTasks(order);
     auto last = spread[spread.size() - 1];
     auto first = spread[0];
     double timePenalty = last.start + last.duration - first.start;
-    return timePenalty;
+    double priorityPenalty = 0;
+    double commutePenalty = 0;
+    double onTimePenalty = 0;
+    for (size_t index = 1; index < order.size(); index++) {
+      auto thisTask = tasks[order[index]];
+      auto thisSlot = spread[index];
+      priorityPenalty += sqrt(index) * thisTask.priority;
+      if (thisTask.due != 0.0 && thisTask.due < thisSlot.start + thisSlot.duration)
+        onTimePenalty += 100;
+      auto previousTask = tasks[order[index - 1]];
+      if (thisTask.location == 0 || previousTask.location == 0)
+        continue;
+      if (thisTask.location != previousTask.location)
+        commutePenalty += 4;
+    }
+    return timePenalty + priorityPenalty;
   }
 
   State permuteState() {
@@ -79,11 +95,11 @@ class MCMCScheduler {
   }
 
   void mcmcSweep(size_t steps, bool print_raw = true) {
-    double energy = getEnergy(state);
+    double energy = computeEnergy(state);
     double E_sum = 0, E_squared_sum = 0;
     for (size_t i = 0; i < steps; i++) {
       State proposal = permuteState();
-      double delta = getEnergy(proposal) - energy;
+      double delta = computeEnergy(proposal) - energy;
       double acceptanceProbability = std::min(1.0, std::exp(-delta / (energy * temperature)));
       if (((double)rand() / RAND_MAX) < acceptanceProbability) {
         state = proposal;
@@ -106,7 +122,7 @@ py::list schedule(const py::list &tasks) {
     // unpack the tuple assuming it has exactly 4 elements (uid, duration, priority, location)
     auto tupleIterator = it->cast<py::tuple>().begin();
     auto task = Task{(tupleIterator++)->cast<std::string>(), (tupleIterator++)->cast<float>(),
-        (tupleIterator++)->cast<int>(), tupleIterator->cast<int>()};
+        (tupleIterator++)->cast<int>(), tupleIterator->cast<int>(), tupleIterator->cast<float>()};
     scheduler.tasks.push_back(task);
     // std::cout << task.uid << ": " << task.duration << ", " << task.priority << ", " << task.location << std::endl;
   }

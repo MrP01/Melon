@@ -1,5 +1,4 @@
 """The scheduler algorithm"""
-import dataclasses
 import logging
 import pathlib
 import sys
@@ -27,5 +26,5 @@ class CppMCMCScheduler(AbstractScheduler):
             Mapping[str, TimeSlot]: the resulting schedule
         """
         start = datetime.combine(date.today(), START_OF_DAY)  # equivalent to t = 0 for libcppscheduler
-        result = libcppscheduler.schedule(list(map(dataclasses.astuple, self.tasks)))
+        result = libcppscheduler.schedule([task.asTuple(start) for task in self.tasks])
         return {t[0]: TimeSlot(start + timedelta(hours=t[1]), t[2]) for t in result}

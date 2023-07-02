@@ -59,7 +59,7 @@ class TestScheduler:
     @pytest.mark.parametrize("Scheduler", ALL_IMPLEMENTATIONS)
     def test_task_too_long(self, Scheduler: type[AbstractScheduler]):
         """Tests whether tasks are too long."""
-        scheduler = Scheduler([Task("1", 3.5, 1, 1), Task("2", 200.0, 7, 2)])
+        scheduler = Scheduler([Task("1", 3.5, 1, 1, None), Task("2", 200.0, 7, 2, None)])
         with pytest.raises((RuntimeError, SystemError)):
             scheduler.schedule()
 

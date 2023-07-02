@@ -18,6 +18,16 @@ class Task:
     duration: float  # estimated, in hours
     priority: int  # between 1 and 9
     location: int  # number indicating the location, where 0 is "hybrid"
+    due: datetime | None  # when the task is due
+
+    def asTuple(self, start: datetime) -> tuple[str, float, int, int, float]:
+        return (
+            self.uid,
+            self.duration,
+            self.priority,
+            self.location,
+            (self.due - start).total_seconds() / 3600 if self.due is not None else 0,
+        )
 
 
 @dataclasses.dataclass
@@ -74,15 +84,26 @@ class AbstractScheduler:
 
 def generateDemoTasks() -> list[Task]:
     """Generates a fixed set of demo tasks."""
+    now = datetime.now()
     return [
-        Task("1", 3.5, 1, 1),
-        Task("2", 2.0, 7, 2),
-        Task("3", 11.0, 3, 1),
-        Task("4", 2.0, 9, 0),
-        Task("5", 4.0, 5, 1),
+        Task("1", 3.5, 1, 1, now + timedelta(hours=3)),
+        Task("2", 2.0, 7, 2, None),
+        Task("3", 11.0, 3, 1, now + timedelta(hours=22)),
+        Task("4", 2.0, 9, 0, now + timedelta(hours=100)),
+        Task("5", 4.0, 5, 1, None),
     ]
 
 
 def generateManyDemoTasks(N: int) -> list[Task]:
     """Generates a larger set of randomly generated demo tasks."""
-    return [Task(str(i), random.randint(1, 20) / 2, random.randint(1, 9), random.randint(0, 2)) for i in range(N)]
+    now = datetime.now()
+    return [
+        Task(
+            uid=str(i),
+            duration=random.randint(1, 20) / 2,
+            priority=random.randint(1, 9),
+            location=random.randint(0, 2),
+            due=now + timedelta(hours=random.randint(10, N * 5)) if random.random() < 0.5 else None,
+        )
+        for i in range(N)
+    ]

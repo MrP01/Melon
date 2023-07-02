@@ -1,5 +1,4 @@
-"""The scheduler algorithm"""
-import dataclasses
+"""Numba implementation of the scheduler algorithm."""
 import math
 import random
 from datetime import date, datetime, timedelta
@@ -14,7 +13,7 @@ State = list[int]
 
 
 @numba.njit()
-def spreadTasks(tasks: Sequence[tuple[str, float, int, int]]) -> Sequence[tuple[str, float, float]]:
+def spreadTasks(tasks: Sequence[tuple[str, float, int, int, float]]) -> Sequence[tuple[str, float, float]]:
     """Spreads the given list of tasks across the available slots in the calendar, in order.
 
     Args:
@@ -57,10 +56,11 @@ def permuteState(state: State) -> State:
 
 
 @numba.njit()
-def computeEnergy(tasks: Sequence[tuple[str, float, int, int]], state: State) -> float:
+def computeEnergy(tasks: Sequence[tuple[str, float, int, int, float]], state: State) -> float:
     """For the given state, compute an MCMC energy (the lower, the better)
 
     Args:
+        tasks (Sequence[tuple[str, float, int, int, float]]): list of tasks (uid, duration, priority, location, due)
         state (State): state of the MCMC algorithm
 
     Returns:
@@ -69,15 +69,26 @@ def computeEnergy(tasks: Sequence[tuple[str, float, int, int]], state: State) ->
     spread = spreadTasks([tasks[i] for i in state])
     totalTimePenalty = spread[-1][1] + spread[-1][2] - spread[0][1]
     priorityPenalty = sum([position * tasks[state[position]][2] for position in range(len(state))])
+    commutePenalty = 0.0
+    onTimePenalty = 0.0
+    for position in range(1, len(state)):
+        previous = tasks[state[position - 1]]
+        current = tasks[state[position]]
+        if current[4] != 0 and current[4] < spread[position][1] + spread[position][2]:
+            onTimePenalty += 100
+        if previous[3] == 0 or current[3] == 0:
+            continue  # hybrid tasks can be done from anywhere, so do not penalise
+        if previous[3] != current[3]:
+            commutePenalty += 4
     return totalTimePenalty + priorityPenalty
 
 
 @numba.njit()
-def mcmcSweep(tasks: Sequence[tuple[str, float, int, int]], initialState: State, temperature: float) -> State:
+def mcmcSweep(tasks: Sequence[tuple[str, float, int, int, float]], initialState: State, temperature: float) -> State:
     """Performs a full MCMC sweep
 
     Args:
-        tasks (Sequence[tuple[str, float, int, int]]): list of tasks
+        tasks (Sequence[tuple[str, float, int, int, float]]): list of tasks
         initialState (State): initial ordering
         temperature (float): temperature for Simulated Annealing
 
@@ -98,11 +109,11 @@ def mcmcSweep(tasks: Sequence[tuple[str, float, int, int]], initialState: State,
 
 
 @numba.njit()
-def schedule(tasks: Sequence[tuple[str, float, int, int]]) -> Sequence[tuple[str, float, float]]:
+def schedule(tasks: Sequence[tuple[str, float, int, int, float]]) -> Sequence[tuple[str, float, float]]:
     """Schedules the given tasks in low-level representation into calendar.
 
     Args:
-        tasks (Sequence[tuple[str, float, int, int]]): vector of tasks (uid, duration, priority, location)
+        tasks (Sequence[tuple[str, float, int, int, float]]): vector of tasks (uid, duration, priority, location, due)
 
     Returns:
         Sequence[tuple[str, float, float]]: vector of allocated timeslots (uid, timestamp, duration)
@@ -124,5 +135,5 @@ class NumbaMCMCScheduler(AbstractScheduler):
             Mapping[str, TimeSlot]: the resulting schedule
         """
         start = datetime.combine(date.today(), START_OF_DAY)  # equivalent to t = 0
-        result = schedule(NumbaList(map(dataclasses.astuple, self.tasks)))
+        result = schedule(NumbaList(task.asTuple(start) for task in self.tasks))
         return {t[0]: TimeSlot(start + timedelta(hours=t[1]), t[2]) for t in result}
