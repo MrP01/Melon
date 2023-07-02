@@ -56,7 +56,6 @@ class TaskItemEditorFactory(QtWidgets.QItemEditorFactory):
         def actualHandler():
             """I am called to perform the actual parsing."""
             text = edit.text()
-            print("Edit", text)
             results = dateparser.search.search_dates(text)
             if results:
                 token, stamp = results[0]

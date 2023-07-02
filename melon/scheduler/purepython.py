@@ -1,4 +1,5 @@
 """The scheduler algorithm"""
+import logging
 import math
 import random
 from datetime import date, datetime, timedelta
@@ -77,7 +78,7 @@ class MCMCScheduler(AbstractScheduler):
         self.availability = AvailabilityManager()
         self.state = tuple(range(len(self.tasks)))  # initialise in order
         self.temperature = 1.0
-        self._log = []
+        self.energyLog = []
 
     def permuteState(self) -> State:
         """Proposes a new state to use instead of the old state.
@@ -136,7 +137,7 @@ class MCMCScheduler(AbstractScheduler):
             E_squared_sum += energy**2
         E_avg = E_sum / steps
         E_var = E_squared_sum / steps - E_avg**2
-        self._log.append((self.temperature, E_avg, E_var))
+        self.energyLog.append((self.temperature, E_avg, E_var))
 
     def schedule(self) -> Mapping[str, TimeSlot]:
         """Schedules the tasks using an MCMC procedure.
@@ -147,5 +148,5 @@ class MCMCScheduler(AbstractScheduler):
         for k in range(1, 11):
             self.temperature = INITIAL_TEMPERATURE * k**SWEEP_EXPONENT
             self.mcmcSweep()
-        print("Final State", self.state)
+        logging.info("Final State of the MCMC simulation", self.state)
         return dict(self.availability.spreadTasks(self.tasks[i] for i in self.state))

@@ -2,16 +2,19 @@
 We do not use the CamelCase naming convention for methods in this file because invoke does not recognise CamelCase
 function names as opposed to snake_case names.
 """
+import collections
 import cProfile
 import pathlib
 import pstats
 import time
 
 import IPython
+import matplotlib.axes
 import numpy as np
 import requests
 from invoke.context import Context
 from invoke.tasks import task
+from matplotlib import pyplot as plt
 from traitlets.config import Config
 
 from melon.melon import Melon
@@ -22,10 +25,9 @@ from melon.scheduler.purepython import MCMCScheduler
 from melon.scheduler.rust import RustyMCMCScheduler
 from melon.visualise import plotConvergence
 
-ALL_IMPLEMENTATIONS = (MCMCScheduler, RustyMCMCScheduler, NumbaMCMCScheduler, CppMCMCScheduler)
-
 HOME = pathlib.Path.home()
 RESULTS = pathlib.Path(__file__).parent / "report" / "results"
+ALL_IMPLEMENTATIONS = (MCMCScheduler, RustyMCMCScheduler, NumbaMCMCScheduler, CppMCMCScheduler)
 
 
 @task()
@@ -38,7 +40,7 @@ def schedule_and_export(ctx: Context, path: str = str(HOME / "Personal" / "task-
     melon = Melon()
     melon.autoInit()
     scheduler = melon.scheduleAllAndExport(path, Scheduler=MCMCScheduler)
-    plotConvergence(np.array(scheduler._log), str(RESULTS / "convergence.pdf"))  # type: ignore
+    plotConvergence(np.array(scheduler.energyLog), str(RESULTS / "convergence.pdf"))  # type: ignore
 
 
 @task()
@@ -59,7 +61,11 @@ def ipython_shell(ctx: Context):
 
 @task()
 def start_mock_server(ctx: Context):
-    """Starts a Xandikos server on port 8000."""
+    """Starts a Xandikos server on port 8000.
+
+    Args:
+        ctx (Context): Invoke Execution Context
+    """
     ctx.run("mkdir -p /tmp/xandikosdata")
     ctx.sudo(
         "docker run -v /tmp/xandikosdata:/data -p 8000:8000 --detach ghcr.io/jelmer/xandikos "
@@ -82,16 +88,24 @@ def start_mock_server(ctx: Context):
 
 @task()
 def plot_convergence(ctx: Context):
-    """Plots scheduler convergence to a file."""
+    """Plots scheduler convergence to a file.
+
+    Args:
+        ctx (Context): Invoke Execution Context
+    """
     scheduler = MCMCScheduler(generateManyDemoTasks(40))
     scheduler.schedule()
-    plotConvergence(np.array(scheduler._log), str(RESULTS / "convergence.pdf"))  # type: ignore
+    plotConvergence(np.array(scheduler.energyLog), str(RESULTS / "convergence.pdf"))
 
 
 @task
-def compare_runtime(ctx: Context):
-    """Compares runtime of the different scheduling implementations."""
-    tasks = generateManyDemoTasks(80)
+def compare_runtime(ctx: Context, N=80):
+    """Compares runtime of the different scheduling implementations.
+
+    Args:
+        ctx (Context): Invoke Execution Context
+    """
+    tasks = generateManyDemoTasks(N)
     start = time.monotonic()
     NumbaMCMCScheduler(generateDemoTasks()).schedule()  # warm-up / pre-compile Numba
     print("Numba Compilation time:", time.monotonic() - start)
@@ -104,11 +118,40 @@ def compare_runtime(ctx: Context):
         runtimes[Scheduler.__name__] = time.monotonic() - start
     for key, value in sorted(runtimes.items(), key=lambda item: item[1]):
         print(f"{key:40} took {value:.4f} seconds")
+    return runtimes
+
+
+@task()
+def plot_runtime_complexity(ctx: Context):
+    """Simulates with a varying number of tasks and plots runtime complexity.
+
+    Args:
+        ctx (Context): Invoke Execution Context
+    """
+    cumulatedRuntimes = collections.defaultdict(list)
+    N_array = range(5, 80, 5)
+    for N in N_array:
+        runtimes = compare_runtime(ctx, N)
+        for key in runtimes:
+            cumulatedRuntimes[key].append(runtimes[key])
+
+    fig = plt.figure()
+    axes: matplotlib.axes.Axes = fig.add_subplot(1, 1, 1)
+    for key in cumulatedRuntimes:
+        axes.semilogy(N_array, cumulatedRuntimes[key], label=key)
+    axes.set_xlabel("Number of tasks")
+    axes.set_ylabel("Runtime")
+    axes.legend()
+    fig.savefig(str(RESULTS / "complexity.pdf"))  # type: ignore
 
 
 @task()
 def profile_scheduler(ctx: Context):
-    """Profile the pure Python MCMC Scheduler."""
+    """Profile the pure Python MCMC Scheduler.
+
+    Args:
+        ctx (Context): Invoke Execution Context
+    """
     cProfile.run(
         "from melon.scheduler.purepython import MCMCScheduler;"
         "from melon.scheduler.base import generateManyDemoTasks;"
@@ -119,5 +162,9 @@ def profile_scheduler(ctx: Context):
 
 @task()
 def build_docs(ctx: Context):
-    """Builds documentation using Sphinx."""
+    """Builds documentation using Sphinx.
+
+    Args:
+        ctx (Context): Invoke Execution Context
+    """
     ctx.run("sphinx-build -M latexpdf docs/ build/docs/")

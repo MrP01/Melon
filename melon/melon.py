@@ -213,7 +213,6 @@ class Melon:
         schedule.add("version", "2.0")
         todos = {t.uid: t for t in self.allTasks()}
         for uid, slot in scheduling.items():
-            print("Adding", uid)
             event = icalendar.Event(summary=todos[uid].summary)
             event.add("dtstart", slot.timestamp)
             event.add("dtend", slot.end)

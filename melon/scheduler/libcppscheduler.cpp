@@ -68,7 +68,6 @@ class MCMCScheduler {
   }
 
   State permuteState() {
-    // memcpy(new_, state, tasks.size() * sizeof(size_t)); // copy current configuration to new one
     State proposal = state; // copy current state
     size_t cityA_ = rand() % tasks.size();
     size_t cityB_ = rand() % tasks.size();
@@ -90,19 +89,7 @@ class MCMCScheduler {
         state = proposal;
         energy += delta;
       }
-      // memcpy(state, proposal, tasks.size() * sizeof(size_t));
-      // std::cout << " -> " << acceptanceProbability << std::endl;
-      E_sum += energy;
-      E_squared_sum += energy * energy;
     }
-    double E_avg = E_sum / steps;
-    double E_var = E_squared_sum / steps - E_avg * E_avg;
-    // if (print_raw)
-    //   std::cout << temperature << ", " << E_avg << ", " << E_var << ", ";
-    // else {
-    //   std::cout << "Average energy for T = " << temperature << ": " << E_avg << std::endl;
-    //   std::cout << "Variance for       T = " << temperature << ": " << E_var << std::endl;
-    // }
   }
 
   void mcmcSimulate(size_t iterations) {
@@ -121,7 +108,7 @@ py::list schedule(const py::list &tasks) {
     auto task = Task{(tupleIterator++)->cast<std::string>(), (tupleIterator++)->cast<float>(),
         (tupleIterator++)->cast<int>(), tupleIterator->cast<int>()};
     scheduler.tasks.push_back(task);
-    std::cout << task.uid << ": " << task.duration << ", " << task.priority << ", " << task.location << std::endl;
+    // std::cout << task.uid << ": " << task.duration << ", " << task.priority << ", " << task.location << std::endl;
   }
   scheduler.initState();
   scheduler.mcmcSimulate(10);

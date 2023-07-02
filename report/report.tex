@@ -108,6 +108,9 @@ until convergence, repeat
   \subsection{Maintaining Code Quality}
   Using \texttt{pre-commit} and GitHub Actions CI/CD.
 
+  \subsection{Publishing to PyPi}
+  Although we believe it would have been possible to compile the C++ and Rust implementations on a CI service using a ``platform matrix'', the published package only contains compilation targets for the x86\_64 platform and Python 3.11.
+
   \texttt{
     \hspace*{-1em} prettier........................................................\textcolor{green}{Passed} \\
     fix end of files................................................\textcolor{green}{Passed} \\
@@ -183,7 +186,13 @@ until convergence, repeat
 
   \section{Runtime Performance}
   \label{sec:runtime}
-  The following benchmarks were all accumulated on an Intel\textregistered \, i7-5600U CPU running at \SI{2.6}{\giga\hertz} verified through 3 individual runs, keeping parameters consistent along them.
+  The following benchmarks were all accumulated on an x86\_64 Intel\textregistered \, i7-5600U CPU running at \SI{2.6}{\giga\hertz} verified through 3 individual runs, keeping parameters consistent along them.
+
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{results/complexity.pdf}
+    \caption{Complexity plot}
+  \end{figure}
 
   \begin{minted}{python}
 In [1]: %timeit str(t.icalendar_component["uid"])
@@ -267,7 +276,6 @@ In [4]: %timeit t._vobject_instance.contents["vtodo"][0].contents["uid"][0].valu
     \end{tblr}
     \label{table:runtime}
   \end{table}
-
 
   \section{Acknowledgements}
   The visualisation code (\texttt{visualise.py}) is adapted from \cite{monte-carlo-todo-lists}.

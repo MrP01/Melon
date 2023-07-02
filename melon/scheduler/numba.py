@@ -111,7 +111,6 @@ def schedule(tasks: Sequence[tuple[str, float, int, int]]) -> Sequence[tuple[str
     for k in range(1, 11):
         temperature = INITIAL_TEMPERATURE * k**SWEEP_EXPONENT
         state = mcmcSweep(tasks, state, temperature)
-    print("Final State", state)
     return spreadTasks([tasks[i] for i in state])
 
 

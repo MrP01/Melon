@@ -1,5 +1,6 @@
 """This module contains the Todo class."""
 import datetime
+import logging
 import re
 from typing import Literal
 
@@ -155,7 +156,7 @@ class Todo(caldav.Todo):
 
         """
         super().complete(completion_timestamp, handle_rrule, rrule_mode)
-        print("Task completed.")
+        logging.info("Task completed.")
 
     def isTodo(self) -> bool:
         """

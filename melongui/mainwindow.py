@@ -116,7 +116,6 @@ class MainWindow(QtWidgets.QWidget):
         Args:
             event (QKeyEvent): Argument
         """
-        # print("Key Event", event)
         if event.modifiers() == Qt.KeyboardModifier.ControlModifier:
             if event.key() == Qt.Key.Key_W:
                 self.close()
@@ -128,8 +127,6 @@ class MainWindow(QtWidgets.QWidget):
                 self.tasklistView.addEmptyTask()
             elif event.key() == Qt.Key.Key_Return:
                 self.threadPool.start(self.melon.scheduleAllAndExport)
-        # if Qt.Key.Key_A <= event.key() <= Qt.Key.Key_Z:
-        #     self.searchWidget.setFocus()
         return super().keyPressEvent(event)
 
     def showInfoMessage(self, msg: str):

@@ -141,7 +141,7 @@ class TaskListView(QtWidgets.QListWidget):
     def addEmptyTask(self):
         """Add an empty task to the bottom for editing and saving later."""
         if self._currentCalendarName is None:
-            print("Please select a calendar first!")
+            logging.warning("Please select a calendar first!")
             return
         calendar = self.melon.calendars[self._currentCalendarName]
         todo = calendar.createTodo()
