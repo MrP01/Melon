@@ -120,7 +120,6 @@ class MCMCScheduler(AbstractScheduler):
             if previous.location != current.location:
                 commutePenalty += 30.0
         total = totalTimePenalty + priorityPenalty + commutePenalty + onTimePenalty - self.constantEnergyMinimum
-        # print(totalTimePenalty, priorityPenalty, commutePenalty, onTimePenalty, total)
         return total
 
     def mcmcSweep(self):
@@ -132,7 +131,6 @@ class MCMCScheduler(AbstractScheduler):
             newState = self.permuteState()
             delta = self.computeEnergy(newState) - energy
             acceptanceProbability = min(math.exp(-delta / (energy * self.temperature)), 1)
-            # print(f"New state with energy {energy + delta} (delta {delta}), accepted with {acceptanceProbability}.")
             if random.random() < acceptanceProbability:
                 self.state = newState
                 energy += delta

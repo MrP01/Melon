@@ -80,8 +80,6 @@ class MCMCScheduler {
       if (thisTask.location != previousTask.location)
         commutePenalty += 30.0;
     }
-    // std::cout << timePenalty << ", " << priorityPenalty << ", " << commutePenalty << ", " << onTimePenalty <<
-    // std::endl;
     return timePenalty + priorityPenalty + commutePenalty + onTimePenalty;
   }
 
@@ -94,15 +92,13 @@ class MCMCScheduler {
     return proposal;
   }
 
-  void mcmcSweep(size_t steps, bool print_raw = true) {
+  void mcmcSweep(size_t steps) {
     double energy = computeEnergy(state);
     double E_sum = 0, E_squared_sum = 0;
     for (size_t i = 0; i < steps; i++) {
       State proposal = permuteState();
       double delta = computeEnergy(proposal) - energy;
       double acceptanceProbability = std::min(1.0, std::exp(-delta / (energy * temperature)));
-      // std::cout << "AccProb: " << acceptanceProbability << " Temp: " << temperature << " State: " << state[0] << ", "
-      //           << state[1] << ", " << state[2] << std::endl;
       if (((double)rand() / RAND_MAX) < acceptanceProbability) {
         state = proposal;
         energy += delta;
@@ -126,7 +122,6 @@ py::list schedule(const py::list &tasks) {
     auto task = Task{(tupleIterator++)->cast<std::string>(), (tupleIterator++)->cast<float>(),
         (tupleIterator++)->cast<int>(), tupleIterator->cast<int>(), tupleIterator->cast<float>()};
     scheduler.tasks.push_back(task);
-    // std::cout << task.uid << ": " << task.duration << ", " << task.priority << ", " << task.location << std::endl;
   }
   scheduler.initState();
   scheduler.mcmcSimulate(15);

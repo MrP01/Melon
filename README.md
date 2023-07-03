@@ -22,6 +22,23 @@ melon.autoInit()
 melon.scheduleAllAndExport("task-schedule.ics", Scheduler=RustyMCMCScheduler)
 ```
 
+Creation of and interaction with \texttt{Todo}s in the calendar can be simple:
+
+```python
+from melon.melon import Melon
+
+melon = Melon()  # loads the config and initialises
+melon.autoInit()  # initiates a network connection to the server
+matches = list(melon.findTask("Submit report"))
+matches[0].complete()  # marks the todo as complete and syncs
+
+calendar = melon.calendars["My Calendar"]
+calendar.sync()  # fetches updates from the server
+todo = calendar.createTodo("New Todo")
+todo.dueDate = datetime.date.today()
+todo.save()  # saves the todo to the server
+```
+
 In order to run the scheduler on demonstration data, please run
 
 ```python

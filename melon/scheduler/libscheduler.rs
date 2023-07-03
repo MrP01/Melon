@@ -86,10 +86,6 @@ fn compute_energy(tasks: &Vec<Task>, state: &Vec<usize>) -> f64 {
       commute_penalty += 30.0;
     }
   }
-  // println!(
-  //   "Penalties {}, {}, {}, {}",
-  //   time_penalty, priority_penalty, commute_penalty, on_time_penalty
-  // );
   return time_penalty + priority_penalty as f64 + commute_penalty + on_time_penalty;
 }
 

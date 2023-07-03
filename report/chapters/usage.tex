@@ -92,6 +92,7 @@ There are two main entrypoints to running the code: \texttt{main.py} to run the 
 
 \pagebreak
 \paragraph{Low-Level Language Setup}
+This project uses Conan as a C++ package manager to install \texttt{pybind11}. If this is already installed, one can skip the installation of \texttt{conan} itself.
 In order to compile the C++ implementation of the scheduler algorithm, starting from the root folder of the project (containing \texttt{CMakeLists.txt} and \texttt{conanfile.txt}), please run
 
 \bashblock{conan install . ----output-folder=build ----build=missing} \\
