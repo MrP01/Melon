@@ -237,7 +237,7 @@ class Melon:
         """
         logging.info("Initialising scheduler.")
         scheduler = Scheduler(self.tasksToSchedule())
-        logging.info(f"Scheduling {len(scheduler.tasks)} now.")
+        logging.info(f"Scheduling {len(scheduler.tasks)} tasks now.")
         schedule = scheduler.schedule()
         logging.info("Exporting.")
         export = self.exportScheduleAsCalendar(schedule)

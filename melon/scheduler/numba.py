@@ -120,7 +120,7 @@ def schedule(tasks: Sequence[tuple[str, float, int, int, float]]) -> Sequence[tu
         Sequence[tuple[str, float, float]]: vector of allocated timeslots (uid, timestamp, duration)
     """
     state = list(range(len(tasks)))
-    for k in range(1, 11):
+    for k in range(1, 16):
         temperature = INITIAL_TEMPERATURE * k**SWEEP_EXPONENT
         state = mcmcSweep(tasks, state, temperature)
     return spreadTasks([tasks[i] for i in state])

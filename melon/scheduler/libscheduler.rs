@@ -113,7 +113,7 @@ fn mcmc_sweep(tasks: &Vec<Task>, initial_state: Vec<usize>, temperature: f64) ->
 fn schedule(tasks: &Vec<Task>) -> Vec<(String, TimeSlot)> {
   let n = tasks.len();
   let mut state = (0..n).collect();
-  for k in 1..11 {
+  for k in 1..16 {
     state = mcmc_sweep(&tasks, state, INITIAL_TEMPERATURE * (k as f64).powf(-1.0));
   }
   return spread_tasks(&tasks, &state);

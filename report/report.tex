@@ -4,7 +4,7 @@
 \tikzexternalize[prefix=tikz/]
 
 \newcommand{\topictitle}{
-  Melon - a Task Scheduling Package for Personal Todo Lists \\
+  Melon - a Task Scheduling Package for Todo List Applications \\
   \normalsize using Markov Chain Monte-Carlo Methods
 }
 \newcommand{\candidatenumber}{1072462}
@@ -15,11 +15,13 @@
 \date{\today}
 
 \makenoidxglossaries
-\newacronym{ode}{ODE}{Ordinary Differential Equation}
-\newacronym{pde}{PDE}{Partial Differential Equation}
+\newacronym{mcmc}{MCMC}{Markov chain Monte-Carlo}
 \newacronym{gui}{GUI}{Graphical User Interface}
+\newacronym{caldav}{CalDAV}{Calendaring Extensions to WebDAV}
+\newacronym{webdav}{WebDAV}{Web Distributed Authoring and Versioning}
 \newacronym{ci}{CI}{Continuous Integration}
 \newacronym{cd}{CD}{Continuous Delivery}
+\newacronym{toml}{TOML}{Tom's Obvious, Minimal Language}
 
 \begin{document}
   \pagestyle{plain}
@@ -27,46 +29,73 @@
 
   \begin{abstract}
     \label{abstract}
-    In this project report we will review the central concepts utilised in the group work conducted to make progress in the \gls{pde} problem associated with the electrochemical model of a battery cell and present numerical results.
+    % In this project report we will review the central concepts utilised in the group work conducted to make progress in the \gls{pde} problem associated with the electrochemical model of a battery cell and present numerical results.
     \vspace*{0.2cm}
 
-    \noindent
-    \textbf{Our Goal:}
-    Numerically obtain the solution $\{a(x, T), b(x, T)\}$.
+    % \noindent
+    % \textbf{Our Goal:}
+    % Numerically obtain the solution $\{a(x, T), b(x, T)\}$.
 
-    The Finite Difference schemes are implemented in Julia and Python, whereas the Spectral Method is implemented in C++.
+    The algorithm is implemented four times, twice in Python, once in Rust and also in C++.
+    Python module bindings to these low-level language implementations are provided using \texttt{rust-cpython} and \texttt{pybind11}, respectively.
   \end{abstract}
 
   \begin{figure}[H]
     \centering
-    % \includegraphics[width=\linewidth]{figures/screenshot.png}
-    \caption{The \gls{gui} of the Spectral Solver.}
+    \includegraphics[width=0.85\linewidth]{figures/melon-ui.png}
+    \caption{The \gls{gui} accompanying the scheduler.}
     \label{fig:gui}
   \end{figure}
 
   \pagebreak
   \pagestyle{normal}
 
+  % \tableofcontents
+
   \section{Problem Introduction}
   \label{sec:introduction}
 
-  UIDs are useful because they make collisions very unlikely, which is not to say that these should not be checked, but if two clients are connected that each generated a set of UIDs it is very unlikely to have to do conflict resolving.
+  This report is concerned with finding a good scheduling approach for a given set of tasks (todos) with duration, priority, location and due date.
+  The software attached with this report, going by the name of \textit{Melon}, consists of two parts: the \texttt{melon} task scheduling package itself and the Graphical User Interface written using the Qt6 framework, contained in \texttt{melongui}.
+  Both of these are published as a package \textbf{melon-scheduler}, available \href{https://pypi.org/project/melon-scheduler/}{on PyPi}. It may be installed using
 
-  We recommend usage with \texttt{xandikos}, a version-controlled DAV server, capable of syncing calendars (events, todos and journals) and contacts.
+  \bashblock{pip install melon-scheduler}
+  for just the scheduler, without the \gls{gui},
 
-  Published on PyPi.
+  \bashblock{pip install melon-scheduler[gui]} with the \gls{gui} or optionally,
 
-  \subsection{Usage}
-  % TODO: describe installation, etc., running main.py
-  Use \texttt{invoke -l} to list all available tasks.
+  \bashblock{pip install melon-scheduler[gui,plots,numba]} with all extras.
 
-  \texttt{conan install . ----output-folder=build ----build=missing}
+  The package is capable of downloading and synchronising tasks from a calendar server supporting the industry-standard CalDAV protocol, displaying and editing them in the \gls{gui} and finally scheduling them into a calendar (cf. \Cref{fig:calendar}).
+  The scheduling mechanism we implemented is a \gls{mcmc} method.
 
-  Is platform-independent, for example due to the usage of \texttt{pathlib.Path}.
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{figures/exported-calendar.png}
+    \caption{The scheduled tasks, as displayed in \textit{Gnome Calendar} (the default duration for each task is one hour). Theoretically existent events could be taken into account for task scheduling as well, just as well as breaks.}
+    \label{fig:calendar}
+  \end{figure}
 
-  \section{Underlying Theory}
+  \subsection{Idea of the Algorithm}
+  We work with the following assumption on the state: the entire scheduling, given the set of tasks, is solely determined by the order in which the tasks are scheduled.
+  That is, for a given order of tasks, the full schedule can be created using the supplied input data.
+  With this assumption, finding the absolute optimum is tedious, especially for a large number of tasks $N \gg 1$, as there are $N!$ possible ways to order the tasks.
+
+  The idea of the Monte Carlo method implemented here is to minimise a penalty function (borrowing the term \textit{energy} from physics) over the discrete state space of size $\mathcal{O}(N!)$ using a stochastic approach, as sketched in \Cref{sec:theory}.
+  The four key properties we aim to optimise for are:
+  \begin{itemize}
+    \tightlist
+    \item spending a minimal amount of time to complete all tasks,
+    \item scheduling high priority tasks first,
+    \item a low number of commutes between locations and
+    \item having all tasks completed on time.
+  \end{itemize}
+  Due to this choice of state representation, the problem broadly mimics a Traveling Salesman Problem.
+
+  \section{Primer on the Underlying Theory}
+  \label{sec:theory}
   \begin{algorithm}[language=pseudo,caption={\centering The Metropolis-Hastings sub-routine \parencite{metropolis, hastings}},basicstyle=\footnotesize]
-until convergence, repeat
+for $N^2$ many times, repeat
   sample a candidate $\vec{x}^*$.
   set $\vec{x}^{n+1} = \vec{x}^*$ with acceptance probability
     $p_{\rm accept} = \min\left(1, \e^{-\beta (F^{n+1} - F^n)}\right)\,,$ with $\beta \in \R^+$ a transition factor.
@@ -76,8 +105,92 @@ until convergence, repeat
   Which is a subroutine to an outer iteration, a technique commonly referred to as Simulated Annealing.
 
   \begin{algorithm}[language=pseudo,caption={\centering Simulated Annealing},basicstyle=\footnotesize]
+let k = 1
 until convergence, repeat
+  set the temperature $T = T_0 k^{q}$.
+  perform a sweep()
+  evaluate $\langle E\rangle$ and $\left\langle\Delta E^2\right\rangle$.
+  set k = k + 1
   \end{algorithm}
+
+  During the simulation, for each temperature $T$ we evaluate the average of the energy
+  $$\langle E\rangle \simeq \frac{1}{n} \sum_{\vec{x}} E(\vec{x}), \quad \text { and } \quad\left\langle E^2\right\rangle \simeq \frac{1}{n} \sum_{\vec{x}} E^2(\vec{x})$$
+  and hence the variance is given by
+  $$\left\langle\Delta E^2\right\rangle:=\left\langle E^2\right\rangle-\langle E\rangle^2 \,.$$
+
+  When the variance subceeds a certain threshold, one could stop the iteration.
+
+  \section{Package Design and Architecture}
+  The \glsname{caldav} format, short for the Calendaring Extensions to \gls{webdav} \parencite{caldav-rfc} defines three types of entities: VEVENTs, VTODOs and VJOURNALs.
+  These entities are organised into calendars, for our purposes these could be thought of as different todo lists.
+  \textit{Melon} interacts with CalDAV servers and objects through Python's \texttt{caldav} package.
+  A decent amount of the code in \texttt{melon} and \texttt{melongui} is concerned with the interaction from the package to these objects.
+  Within the scope of this report, we will focus on a smaller version of these VTODO objects, created for a swift interface to the scheduler algorithm implementations.
+
+  This small object version, containing data relevant to the scheduling mechanism, looks like this:
+  \begin{minted}{python}
+    import dataclasses
+    from datetime import datetime
+
+    @dataclasses.dataclass
+    class Task:
+        uid: str  # unique identifier of the task
+        duration: float  # estimated, in hours
+        priority: int  # between 1 and 9
+        location: int  # number indicating the location, 0 is "hybrid"
+        due: datetime | None  # when the task is due
+  \end{minted}
+
+  UIDs are useful because they make collisions very unlikely, which is not to say that these should not be checked, but if two clients are connected that each generated a set of UIDs it is very unlikely to have to do conflict resolving.
+
+  Is platform-independent, for example due to the usage of \texttt{pathlib.Path}.
+
+  \section{Installation and Usage}
+  \subsection{Package Usage}
+  After running \bash{pip install melon-scheduler[gui]} and starting a Python console, the following code snippet should start the \gls{gui}:
+
+  \begin{minted}{python}
+    from melongui.main import main
+    main()  # to start the GUI
+  \end{minted}
+
+  \begin{minted}{python}
+    from melon.melon import Melon
+    from melon.scheduler.rust import RustyMCMCScheduler
+
+    melon = Melon()
+    melon.autoInit()
+    melon.scheduleAllAndExport(path, Scheduler=RustyMCMCScheduler)
+  \end{minted}
+
+  \begin{minted}{python}
+    from melon.scheduler.rust import RustyMCMCScheduler
+
+    tasks = generateManyDemoTasks(N=80)
+    scheduler = RustyMCMCScheduler(tasks)
+    result = scheduler.schedule()
+  \end{minted}
+
+  If not specified in the initialiser, Melon loads a configuration file located in the user's home configuration directory, so on Linux \texttt{~/.config/melon/config.toml}.
+  The file uses \gls{toml} format and has the following contents:
+  \begin{minted}{toml}
+[client]
+url = "https://my-caldav-server.org:2023/dav/user/calendars/"
+username = "user"
+password = "password"
+  \end{minted}
+
+  \subsection{Full Project Usage}
+  The ZIP file contains a number of configuration files at the top level, the two main code folders \texttt{melon} and \texttt{melongui}, \texttt{tests}, \texttt{docs} and the \texttt{report}.
+  There are two main entrypoints to running the code: \texttt{main.py} to run the GUI, as well as \texttt{tasks.py} which contains miscellanous development and analysis scripts which are all callable by calling \bash{invoke (name-of-the-task) (arguments) (----keyword-arguments)}.
+
+  % TODO: describe installation, etc., running main.py
+  Use \texttt{invoke -l} to list all available tasks.
+
+  \texttt{conan install . ----output-folder=build ----build=missing}
+
+  We recommend usage with \texttt{xandikos}, a version-controlled DAV server, capable of syncing calendars (events, todos and journals) and contacts.
+  Following the standard protocol, \textit{Melon} is also compatible with commercial services such Google Calendar or Microsoft Office, as long as these offer an API endpoint with suitable authentication.
 
   \section{Code Quality}
   \subsection{Formatting}
@@ -95,14 +208,32 @@ until convergence, repeat
     (...)
   }
 
-  the slowest test is the Numba scheduler which takes some time to pre-compile the functions.
-  So even when the runtime of the Numba scheduler itself is low (cf. \cref{sec:runtime}), the test will always take some time.
+  the slowest test is the first routine involving the Numba scheduler which takes some time to pre-compile the functions.
+  So even when the runtime of the Numba scheduler itself is low (cf. \cref{sec:runtime}), the test will always take some extra time.
 
   \subsubsection{Coverage}
-
-  (coverage here)
-
-  Which may be reproduced using \texttt{pytest --cov=melon}.
+  \begin{table}[H]
+    \centering
+    \caption{Test coverage of the \texttt{melon} package: platform linux, python 3.11.4-final-0. This table may be reproduced using \bash{pytest --cov=melon}.}
+    \begin{tabular}{lrrr}
+      \hline
+      \bf Name                        & \bf Statements & \bf Miss & \bf Cover                    \\
+      \hline
+      melon/\_\_init\_\_.py           & 0              & 0        & \textcolor{green}{100 \%}    \\
+      melon/calendar.py               & 57             & 5        & \textcolor{green}{91 \%}     \\
+      melon/config.py                 & 12             & 0        & \textcolor{green}{100 \%}    \\
+      melon/melon.py                  & 121            & 8        & \textcolor{green}{93 \%}     \\
+      melon/scheduler/\_\_init\_\_.py & 0              & 0        & \textcolor{green}{100 \%}    \\
+      melon/scheduler/base.py         & 40             & 3        & \textcolor{green}{92 \%}     \\
+      melon/scheduler/cpp.py          & 18             & 5        & \textcolor{green}{72 \%}     \\
+      melon/scheduler/purepython.py   & 83             & 0        & \textcolor{green}{100 \%}    \\
+      melon/scheduler/rust.py         & 18             & 5        & \textcolor{green}{72 \%}     \\
+      melon/todo.py                   & 101            & 17       & \textcolor{green}{83 \%}     \\
+      melon/visualise.py              & 42             & 2        & \textcolor{green}{95 \%}     \\
+      \hline
+      \bf TOTAL                       & \bf 492        & \bf 45   & \bf \textcolor{green}{91 \%}
+    \end{tabular}
+  \end{table}
 
   \subsection{Type Checking}
   Using \texttt{pyright} instead of \texttt{mypy} as it is much faster.
@@ -269,8 +400,13 @@ In [4]: %timeit t._vobject_instance.contents["vtodo"][0].contents["uid"][0].valu
   \section{Results}
   \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\linewidth]{results/convergence.pdf}
-    \caption{Convergence}
+    \includegraphics[width=0.8\linewidth]{results/convergence-8h-day.pdf}
+    \caption{Temperature, average energy and energy variance for an 8-hour work day. Low variance can be used as a stopping criterion (cf. \Cref{sec:theory}).}
+  \end{figure}
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{results/convergence-14h-day.pdf}
+    \caption{Temperature, average energy and energy variance for a 14-hour work day.}
   \end{figure}
 
   Numba Compilation time: 3.212771240971051

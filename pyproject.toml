@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "melon-scheduler"
-version = "0.1.6"
+version = "0.1.7"
 description = "Schedules Todos into your Calendar"
 authors = ["redacted"]
 readme = "README.md"

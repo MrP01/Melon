@@ -5,4 +5,7 @@
 \setcounter{biburllcpenalty}{7000}
 \setcounter{biburlucpenalty}{8000}
 
-\newcommand{\bash}{\texttt}
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+\newcommand{\bash}[1]{\textcolor{purple}{\texttt{\$ #1}}}
+\newcommand{\bashblock}[1]{\hspace{1cm}\bash{#1}}

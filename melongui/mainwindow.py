@@ -126,7 +126,7 @@ class MainWindow(QtWidgets.QWidget):
             elif event.key() == Qt.Key.Key_Plus:
                 self.tasklistView.addEmptyTask()
             elif event.key() == Qt.Key.Key_Return:
-                self.threadPool.start(self.melon.scheduleAllAndExport)
+                self.threadPool.start(lambda: self.melon.scheduleAllAndExport("task-schedule.ics"))
         return super().keyPressEvent(event)
 
     def showInfoMessage(self, msg: str):

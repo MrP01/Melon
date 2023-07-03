@@ -4,6 +4,7 @@ function names as opposed to snake_case names.
 """
 import collections
 import cProfile
+import logging
 import pathlib
 import pstats
 import shutil
@@ -19,12 +20,12 @@ from matplotlib import pyplot as plt
 from traitlets.config import Config
 
 from melon.melon import Melon
-from melon.scheduler.base import generateDemoTasks, generateManyDemoTasks
-from melon.scheduler.purepython import MCMCScheduler
+from melon.scheduler.base import generateManyDemoTasks
 from melon.visualise import plotConvergence
 
 HOME = pathlib.Path.home()
 RESULTS = pathlib.Path(__file__).parent / "report" / "results"
+logging.basicConfig(level=logging.INFO)
 
 
 @task()
@@ -34,10 +35,15 @@ def schedule_and_export(ctx: Context, path: str = str(HOME / "Personal" / "task-
     Args:
         ctx (invoke.Context): Invoke Execution Context
     """
+    from melon.scheduler.rust import RustyMCMCScheduler
+
     melon = Melon()
     melon.autoInit()
-    scheduler = melon.scheduleAllAndExport(path, Scheduler=MCMCScheduler)
-    plotConvergence(np.array(scheduler.energyLog), str(RESULTS / "convergence.pdf"))  # type: ignore
+    scheduler = melon.scheduleAllAndExport(path, Scheduler=RustyMCMCScheduler)
+    print(f"Exported calendar to {path}.")
+    if hasattr(scheduler, "energyLog"):
+        plotConvergence(np.array(scheduler.energyLog), str(RESULTS / "convergence.pdf"))  # type: ignore
+        print("Added convergence plot.")
 
 
 @task()
@@ -92,6 +98,8 @@ def plot_convergence(ctx: Context, N=40, proportion=0.5):
         N (int): Number of tasks to be generated.
         proportionOfDueDates (float, optional): what percentage (from 0 to 1) of tasks should have a due date.
     """
+    from melon.scheduler.purepython import MCMCScheduler
+
     logs = []
     tasks = generateManyDemoTasks(N, proportion)
     exponents = (-1.0, -1.5, -2.0, -3.0)
@@ -120,7 +128,7 @@ def compare_runtime(ctx: Context, N=80):
 
     tasks = generateManyDemoTasks(N)
     start = time.monotonic()
-    NumbaMCMCScheduler(generateDemoTasks()).schedule()  # warm-up / pre-compile Numba
+    NumbaMCMCScheduler(tasks).schedule()  # warm-up / pre-compile Numba
     print("Numba Compilation time:", time.monotonic() - start)
     runtimes = {}
     for Scheduler in ALL_IMPLEMENTATIONS:
@@ -142,16 +150,16 @@ def plot_runtime_complexity(ctx: Context):
         ctx (Context): Invoke Execution Context
     """
     cumulatedRuntimes = collections.defaultdict(list)
-    N_array = range(5, 80, 5)
+    N_array = np.logspace(2, 7, num=8, base=2.0) / 1.28
     for N in N_array:
-        runtimes = compare_runtime(ctx, N)
+        runtimes = compare_runtime(ctx, int(N))
         for key in runtimes:
             cumulatedRuntimes[key].append(runtimes[key])
 
     fig = plt.figure()
     axes: matplotlib.axes.Axes = fig.add_subplot(1, 1, 1)
     for key in cumulatedRuntimes:
-        axes.semilogy(N_array, cumulatedRuntimes[key], label=key)
+        axes.loglog(N_array, cumulatedRuntimes[key], label=key)
     axes.set_xlabel("Number of tasks")
     axes.set_ylabel("Runtime")
     axes.legend()

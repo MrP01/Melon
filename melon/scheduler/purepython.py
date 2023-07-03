@@ -151,5 +151,5 @@ class MCMCScheduler(AbstractScheduler):
         for k in range(1, 16):
             self.temperature = INITIAL_TEMPERATURE * k**self.sweepExponent
             self.mcmcSweep()
-        logging.info("Final State of the MCMC simulation", self.state)
+        logging.info(f"Final State of the MCMC simulation {self.state}.")
         return dict(self.availability.spreadTasks(self.tasks[i] for i in self.state))
