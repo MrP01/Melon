@@ -21,11 +21,11 @@ This small object version, containing data relevant to the scheduling mechanism,
 
 So each task has an associated UID, duration, priority, location and due date.
 UIDs are useful because they make value collisions very unlikely.
-Which is not to say that these should not be checked, but if two separate calendar clients that each generated a set of UIDs, connected to a server, it is very unlikely to have to resolve potential conflicts.
+This is not to say that these should not be checked, but if two separate calendar clients that each generated a set of UIDs, connected to a server, it is very unlikely to have to resolve potential conflicts.
 
 As mentioned above, the energy we minimise over the state $\vec{x}$ (to schedule the tasks) is a combination of four properties.
 To obtain our energy function, we propose numerical expressions for each of them (again, the lower, the better the state) and then perform a weighted sum over all four.
-Informally stated, the function we minimise is approximately given by
+Roughly stated, the function we minimise is given by
 \begin{align}
   \label{eq:energy} E(\vec{x}) = \; & \mathrm{slot~end}_N - \mathrm{slot~start}_1 + \sum_{j=1}^{N} \identity_{\mathrm{slot~end}_j > \mathrm{due}_j} \cdot 100                    \\
   \nonumber                         & + \sum_{j=2}^{n} (1 - \identity_{\mathrm{location}_{j-1}, \mathrm{location}_{j}}) \cdot 30 + \sum_{j=1}^{N} j \cdot \mathrm{priority}_j\,,

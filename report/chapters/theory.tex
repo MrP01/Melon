@@ -4,17 +4,18 @@ Many complex problems cannot be solved using analytical methods due to, for inst
 \gls{mcmc} methods with transition probabilities allow us to explore a huge state space regardless and minimise a function (energy $E$) therein.
 There are many use cases in physics, such as for the simulation of the Ising model, where the term \textit{energy} originates from.
 
-\begin{algorithm}[language=pseudo,caption={\centering The Metropolis-Hastings sweep() sub-routine \parencite{metropolis, hastings}},basicstyle=\footnotesize]
+The idea of the iterative procedure below, due to \cite{metropolis} and \cite{hastings} is to start from an initial state $\vec{x}^0$\footnote{In our case, this could be a pre-ordering of tasks obtained by traditional sorting mechanisms, on a simpler metric such as the priority or due date.}, permute it slightly and then accept that new proposal with a probability proportional to the exponential of their energy difference.
+If the proposal's energy is better (lower) than the current state's energy, the acceptance probability is $1$ and therefore automatically $\vec{x}^{n+1} = \vec{x}^*$.
+This allows us to explore state space, but not get stuck in local minima as there is always a non-zero chance for the iteration to escape the local minimum.
+\vspace{1cm}
+
+\begin{algorithm}[language=pseudo,caption={\centering The Metropolis-Hastings sweep() sub-routine},basicstyle=\footnotesize]
 for $N^2$ many times, repeat
   sample a candidate $\vec{x}^*$.
   set $\vec{x}^{n+1} = \vec{x}^*$ with acceptance probability
     $p_{\rm accept} = \min\left(1, \e^{-\beta (E^{n+1} - E^n)}\right)\,,$ with $\beta \in \R^+$ a transition factor.
   Otherwise, let $\vec{x}^{n+1} = \vec{x}^{n}$.
 \end{algorithm}
-
-The idea of the iterative procedure above is to start from an initial state $\vec{x}^0$\footnote{In our case, this could be a pre-ordering of tasks obtained by traditional sorting mechanisms, on a simpler metric.}, permute it slightly and then accept that new proposal with a probability proportional to the exponential of their energy difference.
-If the proposal's energy is better (lower) than the current state's energy, the acceptance probability is $1$ and therefore automatically $\vec{x}^{n+1} = \vec{x}^*$.
-This allows us to explore state space, but not get stuck in local minima as there is always a non-zero chance for the iteration to escape the local minimum.
 
 This algorithm is then employed as a subroutine to an outer iteration, a stochastic global optimisation technique called Simulated Annealing.
 In our specific case, we will minimise the function $E(\vec{x})$ given in \Cref{eq:energy} based on the four properties stated above, using the combination of Metropolis-Hastings and Simulated Annealing.
@@ -33,4 +34,5 @@ For each temperature $T$ we evaluate the average of the energy
 $$\langle E\rangle \simeq \frac{1}{n} \sum_{\vec{x}} E(\vec{x}), \quad \text { and } \quad\left\langle E^2\right\rangle \simeq \frac{1}{n} \sum_{\vec{x}} E^2(\vec{x})$$
 with $n$ the number of iterations for this temperature, hence the variance is given by
 $$\left\langle\Delta E^2\right\rangle:=\left\langle E^2\right\rangle-\langle E\rangle^2 \,.$$
-When the variance subceeds a certain threshold, one could stop the iteration.
+When the variance subceeds a certain threshold, this usually represents an indicator for us stop the iteration.
+In the present implementation however, we keep the number of sweeps constant at 15, across the four different implementations in order to make the runtimes comparable.

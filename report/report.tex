@@ -29,14 +29,16 @@
 
   \begin{abstract}
     \label{abstract}
-    In this project report we will implement a task scheduling method on the basis of a \gls{mcmc} method with Simulated Annealing. The project is available as a software package \textbf{melon-scheduler} on PyPi.
+    In this project we will implement a task scheduling method on the basis of a \gls{mcmc} method with Simulated Annealing. The project is publicly available as a software package \textbf{melon-scheduler} on PyPi and entirely original.
+    The package can download tasks from a \glsname{caldav} server, store and load them locally, synchronise with updates from the server and finally, schedule them into a calendar.
+    It also comes with a \glsname{gui}, cf. \Cref{fig:gui}.
 
-    % \noindent
-    % \textbf{Our Goal:}
-    % Numerically obtain the solution $\{a(x, T), b(x, T)\}$.
+    The key algorithm described in this report is the \gls{mcmc} scheduling procedure, taking a set of tasks as an input and returning an ordered set of time slots as output.
+    The attached code contains four original implementations of the algorithm in three different languages: Python, Rust and C++.
 
-    The algorithm is implemented four times, twice in Python, once in Rust and also in C++.
-    Python module bindings to these low-level language implementations are provided using \texttt{rust-cpython} and \texttt{pybind11}, respectively.
+    We will compare the performance of the four different implementations to see whether outsourcing performance-critical sections of code to low-level languages is worth the effort in the context of scientific computing.
+
+    % Python module bindings to these low-level language implementations are provided using \texttt{rust-cpython} and \texttt{pybind11}, respectively.
   \end{abstract}
 
   \begin{figure}[H]
@@ -60,9 +62,14 @@
 
   \section{Conclusion}
   In this Special Topic, we implemented a task scheduling application, tested it thoroughly (code coverage over 90 \%) and used it for the development of a Todo List Application.
-  The optimisation is done using a Markov chain Monte-Carlo method with Simulated Annealing.
+  The optimisation is done using a \glstext{mcmc} method with Simulated Annealing.
   This algorithm was implemented four times, in Python, Rust and C++.
-  The low-level language implementations in Rust and C++ outperformed the high-level language implementations in Python by nearly two orders of magnitude.
+  Its key objective is to minimise a function (energy), the time development of which may be found in \Cref{fig:convergence-14h} and \Cref{fig:convergence-8h}.
+
+  As expected, the low-level language implementations in Rust and C++ outperformed the high-level language implementation in Python by nearly two orders of magnitude.
+  The just-in-time compilation optimisation using Numba also achieved a significant speed-up as compared to the pure Python implementation, but did not match that of Rust or C++.
+  Specific runtime benchmarks can be found in \Cref{table:runtime}.
+  We also analysed the runtime complexity of the algorithm, which may be found in \Cref{fig:complexity}.
 
   \subsection{Acknowledgements}
   The task check icon is the logo of the \textit{Tasks.org} Free and Open Source Android App, the artwork may be found \href{https://github.com/tasks/tasks/tree/main/graphics}{here}.
@@ -93,7 +100,7 @@
 
   \begin{table}[H]
     \centering
-    \caption{Profile obtained by running \mintinline{bash}{./main.py --profile | grep todo.py}.}
+    \caption{Profile obtained by running \bash{./main.py ----profile | grep todo.py}.}
     \begin{tabular}{rrrrrll}
       \hline
       ncalls & tottime & percall & cumtime & percall & filename:lineno & function     \\
@@ -111,6 +118,9 @@
     \end{tabular}
     \label{table:paint-profile}
   \end{table}
+
+  \section{Sphinx Documentation}
+  As mentioned above, this report also contains the documentation generated from the docstrings. It starts on the next page.
 
   \includepdf[pages=7-29]{../build/docs/latex/melon.pdf}
 \end{document}
