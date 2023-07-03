@@ -23,13 +23,14 @@ So each task has an associated UID, duration, priority, location and due date.
 UIDs are useful because they make value collisions very unlikely.
 Which is not to say that these should not be checked, but if two separate calendar clients that each generated a set of UIDs, connected to a server, it is very unlikely to have to resolve potential conflicts.
 
-As mentioned above, the energy we minimise (to schedule the tasks) is a combination of four properties.
+As mentioned above, the energy we minimise over the state $\vec{x}$ (to schedule the tasks) is a combination of four properties.
 To obtain our energy function, we propose numerical expressions for each of them (again, the lower, the better the state) and then perform a weighted sum over all four.
 Informally stated, the function we minimise is approximately given by
 \begin{align}
   \label{eq:energy} E(\vec{x}) = \; & \mathrm{slot~end}_N - \mathrm{slot~start}_1 + \sum_{j=1}^{N} \identity_{\mathrm{slot~end}_j > \mathrm{due}_j} \cdot 100                    \\
-  \nonumber                         & + \sum_{j=2}^{n} (1 - \identity_{\mathrm{location}_{j-1}, \mathrm{location}_{j}}) \cdot 30 + \sum_{j=1}^{N} j \cdot \mathrm{priority}_j\,.
+  \nonumber                         & + \sum_{j=2}^{n} (1 - \identity_{\mathrm{location}_{j-1}, \mathrm{location}_{j}}) \cdot 30 + \sum_{j=1}^{N} j \cdot \mathrm{priority}_j\,,
 \end{align}
+where the state variable $\vec{x}$ can be computed to an ordered sequence of $$(\mathrm{slot~start}_j, \mathrm{slot~end}_j, \mathrm{priority}_j, \mathrm{location}_j, \mathrm{due}_j)_{j \in \{1, ..., N\}}$$ ranging from $j = 1$ the task scheduled into the first slot to $j = N$ the last one.
 Results of the simulation may be found in \Cref{sec:results}.
 
 \subsection{Four Different Implementations}
@@ -41,6 +42,6 @@ Rust and C++ are good choices for iterative procedures as they allow for low-lev
 \begin{itemize}
   \item MCMCScheduler: Pure Python implementation of the scheduling algorithm
   \item NumbaMCMCScheduler: Python with Numba Extension
-  \item RustyMCMCScheduler: Rust implementation, providing bindings with \texttt{rust-cpython}
+  \item RustyMCMCScheduler: Rust implementation, with bindings via \texttt{rust-cpython}
   \item CppMCMCScheduler: C++ implementation, providing bindings with \texttt{pybind11}
 \end{itemize}

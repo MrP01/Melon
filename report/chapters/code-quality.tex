@@ -87,7 +87,7 @@ So even when the runtime of the Numba scheduler itself is low (cf. \Cref{sec:run
 The four different algorithm implementations are tested against each other and on different parameters in order to ensure they work correctly.
 
 \subsubsection{Code Coverage}
-\begin{table}[H]
+\begin{table}
   \centering
   \caption{Test coverage of the \texttt{melon} package: platform linux, python 3.11.4-final-0. This table may be reproduced using \bash{pytest ----cov=melon}.}
   \begin{tabular}{lrrr}
@@ -114,22 +114,26 @@ The four different algorithm implementations are tested against each other and o
 \texttt{pre-commit} is a tool that can install a git hook to the code repository, which automatically runs a set of checks before every commit, hence the name.
 For this project, various checks listed below are employed, being run before each and every commit to keep code quality high throughout the entire development process.
 
-\texttt{
-  \hspace*{-1em} prettier........................................................\textcolor{green}{Passed} \\
-  fix end of files................................................\textcolor{green}{Passed} \\
-  trim trailing whitespace........................................\textcolor{green}{Passed} \\
-  black...........................................................\textcolor{green}{Passed} \\
-  ruff............................................................\textcolor{green}{Passed} \\
-  check blanket noqa..............................................\textcolor{green}{Passed} \\
-  check for eval()................................................\textcolor{green}{Passed} \\
-  interrogate.....................................................\textcolor{green}{Passed} \\
-  autoflake.......................................................\textcolor{green}{Passed} \\
-  pyupgrade.......................................................\textcolor{green}{Passed} \\
-  pyright.........................................................\textcolor{green}{Passed} \\
-  pytest-check....................................................\textcolor{green}{Passed} \\
-  clang-format....................................................\textcolor{green}{Passed} \\
-  latex-format-all................................................\textcolor{green}{Passed}
-}
+\begin{table}
+  \centering
+  \caption{Pre-Commit hooks run on all files of the repository using \bash{pre-commit run ----all-files}. Each hook can either pass or fail.}
+  \texttt{
+    \hspace*{-1em} prettier........................................................\textcolor{green}{Passed} \\
+    fix end of files................................................\textcolor{green}{Passed} \\
+    trim trailing whitespace........................................\textcolor{green}{Passed} \\
+    black...........................................................\textcolor{green}{Passed} \\
+    ruff............................................................\textcolor{green}{Passed} \\
+    check blanket noqa..............................................\textcolor{green}{Passed} \\
+    check for eval()................................................\textcolor{green}{Passed} \\
+    interrogate.....................................................\textcolor{green}{Passed} \\
+    autoflake.......................................................\textcolor{green}{Passed} \\
+    pyupgrade.......................................................\textcolor{green}{Passed} \\
+    pyright.........................................................\textcolor{green}{Passed} \\
+    pytest-check....................................................\textcolor{green}{Passed} \\
+    clang-format....................................................\textcolor{green}{Passed} \\
+    latex-format-all................................................\textcolor{green}{Passed}
+  }
+\end{table}
 
 A similar, more team-friendly option is to use GitHub Actions \gls{ci} / \gls{cd}, or simply CI/CD.
 
