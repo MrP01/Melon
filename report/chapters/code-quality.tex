@@ -9,7 +9,7 @@ This coverage can be verified using \bash{interrogate -vv}, cf. \Cref{table:inte
 
 \begin{table}
   \centering
-  \caption{Result: \textcolor{green}{\bf Passed} (minimum: 80.0\%, actual: 100.0\%)}
+  \caption{Output table of \bash{interrogate -vv}: \textcolor{green}{\bf Passed} (minimum: 80.0\%, actual: 100.0\%). Each file has a number of classes, functions and methods as displayed in \textbf{Total} and \texttt{interrogate} yields the proportion of those having a docstring.}
   \begin{tabular}{lllll}
     \hline
     \bf Name                        & \bf Total & \bf Miss & \bf Cover & \bf Cover                 \\
@@ -89,7 +89,7 @@ The four different algorithm implementations are tested against each other and o
 \subsubsection{Code Coverage}
 \begin{table}
   \centering
-  \caption{Test coverage of the \texttt{melon} package: platform linux, python 3.11.4-final-0. This table may be reproduced using \bash{pytest ----cov=melon}.}
+  \caption{Test coverage of the \texttt{melon} package: platform linux, python 3.11.4-final-0. Each file is analysed by the number of statements (lines) in the file executed as part of the tests. This table may be reproduced using \bash{pytest ----cov=melon}.}
   \begin{tabular}{lrrr}
     \hline
     \bf Name                        & \bf Statements & \bf Miss & \bf Cover                    \\
@@ -116,7 +116,7 @@ For this project, various checks listed below are employed, being run before eac
 
 \begin{table}
   \centering
-  \caption{Pre-Commit hooks run on all files of the repository using \bash{pre-commit run ----all-files}. Each hook can either pass or fail.}
+  \caption{Pre-Commit hooks run on all files of the repository using \bash{pre-commit run ----all-files}. Each hook can either pass, fail or modify existing code.}
   \texttt{
     \hspace*{-1em} prettier........................................................\textcolor{green}{Passed} \\
     fix end of files................................................\textcolor{green}{Passed} \\

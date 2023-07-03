@@ -64,14 +64,26 @@ One should also note that the Numba compilation time was approximately 3.2 secon
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.7\linewidth]{results/complexity.pdf}
-  \caption{Complexity plot}
+  \includegraphics[width=0.68\linewidth]{results/complexity.pdf}
+  \caption{The runtimes of each implementation of the scheduler algorithm (Python, Rust, Python Numba, C++) for an increasing number of tasks.}
   \label{fig:complexity}
 \end{figure}
 
+Fitting a first-order polynomial on the logarithm of the runtime vs the logarithm of the number of tasks, so through the individual lines in \Cref{fig:complexity}, we obtain the following slopes:
+
+\begin{itemize}
+  \tightlist
+  \item MCMCScheduler: 2.874
+  \item RustyMCMCScheduler: 2.728
+  \item NumbaMCMCScheduler: 2.678
+  \item CppMCMCScheduler: 2.570
+\end{itemize}
+
+So the empirical runtime complexity of the algorithm is between $\mathcal{O}(2.5)$ and $\mathcal{O}(2.9)$.
+
 \begin{table}[H]
   \centering
-  \caption{Profile obtained by running \mintinline{bash}{inv profile-scheduler | grep purepython.py}.}
+  \caption{Profile obtained by running \bash{inv profile-scheduler | grep purepython.py}.}
   \begin{tabular}{rrrrrll}
     \hline
     \bf Ncalls & \bf Total & \bf / call & \bf Cum. & \bf / call & \bf Filename:line & \bf Function     \\
