@@ -84,6 +84,8 @@ As we can see using \bash{pytest ----durations=0},
 the slowest test is the first routine involving the Numba scheduler which takes some time to pre-compile the functions.
 So even when the runtime of the Numba scheduler itself is low (cf. \Cref{sec:runtime}), the test will always take some extra time.
 
+The four different algorithm implementations are tested against each other and on different parameters in order to ensure they work correctly.
+
 \subsubsection{Code Coverage}
 \begin{table}[H]
   \centering
@@ -135,10 +137,10 @@ A similar, more team-friendly option is to use GitHub Actions \gls{ci} / \gls{cd
 As highlighted above, the project can be installed from \href{https://pypi.org/project/melon-scheduler/}{this PyPi repository}.
 In order to build and publish the project, one can simply run
 
-\bashblock{poetry publish --build}
+\bashblock{poetry publish ----build}
 
 Although it would be possible to compile the C++ and Rust implementations on a CI service using a ``platform matrix'', the published package only contains compilation targets for the x86\_64 platform and Python 3.11.
 
 All the tools described above will be installed automatically using
 
-\bashblock{poetry install --with=dev}.
+\bashblock{poetry install ----with=dev}.

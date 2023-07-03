@@ -1,32 +1,38 @@
 \section{Results}
 \label{sec:results}
-\subsection{Algorithm Convergence}
+This section will present convergence and runtime results of the scheduling algorithm.
+
+\subsection{Energy Convergence}
 \label{sec:convergence}
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.8\linewidth]{results/convergence-8h-day.pdf}
-  \caption{Temperature, average energy and energy variance for an 8-hour work day. Low variance can be used as a stopping criterion (cf. \Cref{sec:theory}).}
-\end{figure}
+For the pure Python implementation of the MCMC scheduler, we recorded average energy and variance in between sweeps, which are documented in \Cref{fig:convergence-14h} and \Cref{fig:convergence-8h} for different lengths of day. Both figures compare different sweep exponents $q$ from $-1$ to $-3$, which governs how the temperature varies over the course of the simulation, and how that affects the convergence speed.
+
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.8\linewidth]{results/convergence-14h-day.pdf}
-  \caption{Temperature, average energy and energy variance for a 14-hour work day.}
+  \caption{Temperature, average energy $E_{avg} = \langle E \rangle$ and energy variance $E_{var} = \left\langle\Delta E^2\right\rangle$ for a 14-hour work day. Low variance can be used as a stopping criterion (cf. \Cref{sec:theory}).}
+  \label{fig:convergence-14h}
+\end{figure}
+
+As we can see, the average energy $\langle E \rangle$ generally decreases, and much faster so for higher values of $|q|$. The variance at the bottom stays high for the slowly-progressing run, indicating that convergence has not yet been achieved, but decays quicker for stronger temperature decreases (in red).
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\linewidth]{results/convergence-8h-day.pdf}
+  \caption{Temperature, average energy $E_{avg} = \langle E \rangle$ and energy variance $E_{var} = \left\langle\Delta E^2\right\rangle$ for a 14-hour work day. The average energy here is higher than in \Cref{fig:convergence-14h} because days are shorter and therefore long-duration task orderings matter a lot more, negatively impacting the optimality.}
+  \label{fig:convergence-8h}
 \end{figure}
 
 \subsection{Runtime Performance}
 \label{sec:runtime}
 The following benchmarks were all accumulated on an x86\_64 Intel\textregistered \, i7-5600U CPU running at \SI{2.6}{\giga\hertz} verified through 3 individual runs, keeping parameters consistent along them.
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.7\linewidth]{results/complexity.pdf}
-  \caption{Complexity plot}
-\end{figure}
+\Cref{table:profile} contains profiling data of the pure Python implementation.
+Considering the high number of calls but low own time per function call, this suggests that there is little progress to be made using only Python, motivating the use of Numba and the low-level implementations in C++ and Rust to compare.
 
 \begin{table}[H]
   \vspace{0.5cm}
   \centering
-  \caption{Runtime Comparison of the different implementations run on the same scenarios. Each runtime is given as the average over three runs.}
+  \caption{Runtime Comparison of the different implementations run on the same scenarios with $N = 80$ tasks. Each runtime is given as the average over three runs.}
   \begin{tblr}{
     colspec={llr},
     row{2,3} = {bg=azure9},
@@ -47,7 +53,21 @@ The following benchmarks were all accumulated on an x86\_64 Intel\textregistered
   \label{table:runtime}
 \end{table}
 
-Regarding the table above, one should note that the Numba compilation time was approximately 3.2 seconds, which takes place once for each Python process.
+And indeed, \Cref{table:runtime} shows us a 77-times speed up of the Rust and C++ implementations as compared to the pure Python implementation.
+\Cref{fig:complexity} reinforces this data for different input sizes, also revealing the complexity proportionality.
+As expected, Rust and C++, both compiled languages, perform very similarly in terms of their runtime.
+Memory usage analysis was not carried out as part of this project, but we suspect Rust and C++ to perform equivalently once again.
+
+What is perhaps more surprising is that Numba is almost five times slower than the Rust and C++ implementations, which is rooted in the limitations of the just-in-time compilation of Python code.
+Nevertheless, Numba achieves an impressive speed-up, being 15 times faster than the pure Python implementation.
+One should also note that the Numba compilation time was approximately 3.2 seconds, taking place once for each Python process.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.7\linewidth]{results/complexity.pdf}
+  \caption{Complexity plot}
+  \label{fig:complexity}
+\end{figure}
 
 \begin{table}[H]
   \centering
@@ -66,4 +86,5 @@ Regarding the table above, one should note that the Numba compilation time was a
     36000      & 0.082     & 0.000      & 0.217    & 0.000      & purepython:83     & permuteState     \\
     36011      & 0.046     & 0.000      & 0.124    & 0.000      & purepython:19     & startingSlot     \\
   \end{tabular}
+  \label{table:profile}
 \end{table}

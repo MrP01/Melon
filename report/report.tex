@@ -29,8 +29,7 @@
 
   \begin{abstract}
     \label{abstract}
-    % In this project report we will review the central concepts utilised in the group work conducted to make progress in the \gls{pde} problem associated with the electrochemical model of a battery cell and present numerical results.
-    \vspace*{0.2cm}
+    In this project report we will implement a task scheduling method on the basis of a \gls{mcmc} method with Simulated Annealing. The project is available as a software package \textbf{melon-scheduler} on PyPi.
 
     % \noindent
     % \textbf{Our Goal:}
@@ -55,12 +54,18 @@
   \include{chapters/introduction}
   \include{chapters/theory}
   \include{chapters/package-design}
+  \include{chapters/results}
   \include{chapters/usage}
   \include{chapters/code-quality}
-  \include{chapters/results}
 
-  \section{Acknowledgements}
-  The task check icon is the logo of the \textit{Tasks.org} Free and Open Source Android App, which may be found \href{https://github.com/tasks/tasks/tree/main/graphics}{here}.
+  \section{Conclusion}
+  In this Special Topic, we implemented a task scheduling application, tested it thoroughly (code coverage over 90 \%) and used it for the development of a Todo List Application.
+  The optimisation is done using a Markov chain Monte-Carlo method with Simulated Annealing.
+  This algorithm was implemented four times, in Python, Rust and C++.
+  The low-level language implementations in Rust and C++ outperformed the high-level language implementations in Python by nearly two orders of magnitude.
+
+  \subsection{Acknowledgements}
+  The task check icon is the logo of the \textit{Tasks.org} Free and Open Source Android App, the artwork may be found \href{https://github.com/tasks/tasks/tree/main/graphics}{here}.
 
   \pagebreak
   \printbibliography

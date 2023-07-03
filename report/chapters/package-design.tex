@@ -37,3 +37,10 @@ In order to compare runtimes, the same algorithm was implemented four times.
 Once in pure Python, once using the \texttt{numba} library and once in Rust and in C++.
 Numba uses Just-In-Time compilation to speed up subsequent calls of a subroutine.
 Rust and C++ are good choices for iterative procedures as they allow for low-level access to the implementation. Bindings are provided using \texttt{rust-cpython} and \texttt{pybind11}.
+
+\begin{itemize}
+  \item MCMCScheduler: Pure Python implementation of the scheduling algorithm
+  \item NumbaMCMCScheduler: Python with Numba Extension
+  \item RustyMCMCScheduler: Rust implementation, providing bindings with \texttt{rust-cpython}
+  \item CppMCMCScheduler: C++ implementation, providing bindings with \texttt{pybind11}
+\end{itemize}
