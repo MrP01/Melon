@@ -1,0 +1,36 @@
+\section{Primer on the Underlying Theory}
+\label{sec:theory}
+Many complex problems cannot be solved using analytical methods due to, for instance, their discrete nature.
+\gls{mcmc} methods with transition probabilities allow us to explore a huge state space regardless and minimise a function (energy $E$) therein.
+There are many use cases in physics, such as for the simulation of the Ising model, where the term \textit{energy} originates from.
+
+\begin{algorithm}[language=pseudo,caption={\centering The Metropolis-Hastings sweep() sub-routine \parencite{metropolis, hastings}},basicstyle=\footnotesize]
+for $N^2$ many times, repeat
+sample a candidate $\vec{x}^*$.
+set $\vec{x}^{n+1} = \vec{x}^*$ with acceptance probability
+  $p_{\rm accept} = \min\left(1, \e^{-\beta (E^{n+1} - E^n)}\right)\,,$ with $\beta \in \R^+$ a transition factor.
+Otherwise, let $\vec{x}^{n+1} = \vec{x}^{n}$.
+\end{algorithm}
+
+Which is a subroutine to an outer iteration, a technique commonly referred to as Simulated Annealing.
+The idea of the iterative procedure above is to start from an initial state $\vec{x}^0$, permute it slightly and then accept that new proposal with a probability proportional to the exponential of their energy difference.
+If the proposal's energy is better (lower) than the current state's energy, the acceptance probability is $1$.
+This allows us to explore state space, but not get stuck in local minima as there is always a non-zero chance for the iteration to escape the local minimum.
+
+In our specific case, we will minimise the function $E(\vec{x})$ given in \Cref{eq:energy} based on the four properties stated above, using Metropolis-Hastings with Simulated Annealing.
+
+\begin{algorithm}[language=pseudo,caption={\centering Simulated Annealing},basicstyle=\footnotesize]
+let k = 1
+until convergence, repeat
+set the temperature $T = T_0 k^{q}$ and therefore $\beta = \frac{1}{T}$.
+perform a sweep()
+evaluate $\langle E\rangle$ and $\left\langle\Delta E^2\right\rangle$.
+set k = k + 1
+\end{algorithm}
+
+The key idea is to lower the temperature over the course of the simulation to reduce the transition probability.
+For each temperature $T$ we evaluate the average of the energy
+$$\langle E\rangle \simeq \frac{1}{n} \sum_{\vec{x}} E(\vec{x}), \quad \text { and } \quad\left\langle E^2\right\rangle \simeq \frac{1}{n} \sum_{\vec{x}} E^2(\vec{x})$$
+with $n$ the number of iterations for this temperature, hence the variance is given by
+$$\left\langle\Delta E^2\right\rangle:=\left\langle E^2\right\rangle-\langle E\rangle^2 \,.$$
+When the variance subceeds a certain threshold, one could stop the iteration.

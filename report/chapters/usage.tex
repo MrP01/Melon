@@ -1,0 +1,90 @@
+\section{Installation and Usage}
+This project uses one of the latest versions of Python, 3.11.4.
+
+\subsection{Package Usage}
+After running \bash{pip install melon-scheduler[gui]} and starting a Python console, the following code snippet should start the \gls{gui}:
+
+\begin{minted}{python}
+    from melongui.main import main
+    main()  # to start the GUI
+  \end{minted}
+
+which launches a User Interface such as the one depicted in \Cref{fig:gui}.
+
+To load todos from a remote calendar, as specified in the configuration file, and schedule them, use the following code-snippet:
+\begin{minted}{python}
+    from melon.melon import Melon
+    from melon.scheduler.rust import RustyMCMCScheduler
+
+    melon = Melon()
+    melon.autoInit()
+    melon.scheduleAllAndExport("task-schedule.ics", Scheduler=RustyMCMCScheduler)
+  \end{minted}
+
+In order to run the scheduler on demonstration data, please run
+\begin{minted}{python}
+    from melon.scheduler.rust import RustyMCMCScheduler
+
+    tasks = generateManyDemoTasks(N=80)
+    scheduler = RustyMCMCScheduler(tasks)
+    result = scheduler.schedule()
+  \end{minted}
+
+If not specified in the initialiser, Melon loads a configuration file located in the user's home configuration directory, so on Linux \texttt{~/.config/melon/config.toml}.
+The file uses \gls{toml} format and has the following contents:
+\begin{minted}{toml}
+[client]
+url = "https://my-caldav-server.org:2023/dav/user/calendars/"
+username = "user"
+password = "password"
+  \end{minted}
+
+\subsection{Full Project Usage}
+The ZIP file contains a number of configuration files at the top level, the two main code folders \texttt{melon} and \texttt{melongui}, \texttt{tests}, \texttt{docs} and the \texttt{report}.
+To install dependencies from the \texttt{pyproject.toml} file, please run
+
+\bashblock{poetry install}
+
+which will automatically create a virtual environment.
+
+There are two main entrypoints to running the code: \texttt{main.py} to run the GUI, as well as \texttt{tasks.py} which contains miscellanous development and analysis scripts. \textit{Melon} uses \texttt{invoke} to these common development tasks which are all callable by running
+
+\bashblock{inv (name-of-the-task) (arguments) (----keyword-arguments)}
+
+\begin{table}[H]
+  \centering
+  \caption{Running \bash{inv -l} yields a selection of available \texttt{invoke} tasks.}
+  \begin{tblr}{colspec={X[5cm] X[\linewidth - 6cm]}}
+    \texttt{build-docs}              & {Builds documentation using Sphinx.} \\
+    \texttt{compare-runtime}         & {Compares runtime of the different scheduling implementations.} \\
+    \texttt{compile}                 & {Assuming a full setup, compiles the low-level implementations of the scheduler algorithm in C++ and Rust.}\\
+    \texttt{ipython-shell}           & {Starts an IPython shell with Melon initialised.} \\
+    \texttt{plot-convergence}        & {Plots scheduler convergence to a file.} \\
+    \texttt{plot-runtime-complexity} & {Simulates with a varying number of tasks and plots runtime complexity.} \\
+    \texttt{profile-scheduler}       & {Profile the pure Python MCMC Scheduler.} \\
+    \texttt{schedule-and-export}     & {Run the MCMC scheduler and export the resulting events as an ICS file.} \\
+    \texttt{start-mock-server}       & {Starts a Xandikos (CalDAV) server on port 8000.}
+  \end{tblr}
+\end{table}
+
+\paragraph{Low-Level Language Setup}
+In order to compile the C++ implementation of the scheduler algorithm, starting from the root folder of the project (containing \texttt{CMakeLists.txt} and \texttt{conanfile.txt}), please run
+
+\bashblock{conan install . ----output-folder=build ----build=missing} \\
+\bashblock{cd build} \\
+\bashblock{cmake .. -DCMAKE\_BUILD\_TYPE=Release} \\
+\bashblock{make -j4}
+
+To compile the Rust implementation, simply
+
+\bashblock{cargo build --release}
+
+again making sure that the current working directory is the root folder of the project (containing \texttt{Cargo.toml}).
+
+This should have created two \texttt{.so} files in the respective folders.
+The import paths are already adjusted to be able to import these in \texttt{cpp.py} and \texttt{rust.py}, but they will also be copied to the correct \texttt{melon/scheduler} folder using \bash{inv compile}.
+
+We recommend usage with \texttt{xandikos}, a version-controlled DAV server, capable of syncing calendars (events, todos and journals) and contacts.
+Following the standard protocol, \textit{Melon} is also compatible with commercial services such Google Calendar or Microsoft Office, as long as these offer an API endpoint with suitable authentication.
+
+The code should mostly be platform-independent, for example due to the usage of \texttt{pathlib.Path}. Compiling the low-level language implementations might be more cumbersome however and is untested on platforms other than Linux.

@@ -1,0 +1,144 @@
+\section{Code Quality Measures}
+Writing good code is an art, but there are a few concepts, principles and tools to approach the problem from a more standardised, scientific perspective.
+Some of these are:
+
+\paragraph{Formatting} the \textit{Melon} code is done by the \texttt{black} software package. Configuration thereof, as well as that for most other tools, can be found in the \texttt{pyproject.toml} file. To format all Python code, run \bash{black .} which will recursively explore the entire folder. The C++ code is formatted using \texttt{clang-format} while the Rust code is formatted using \texttt{rustfmt}.
+
+\paragraph{Docstrings} help us document the code, \textit{within} the code. Every class, method and function in the project, including \texttt{melon}, \texttt{melongui}, the \texttt{tasks} and the \texttt{tests}, has a docstring.
+This coverage can be verified using \bash{interrogate -vv}, cf. \Cref{table:interrogate}.
+
+\begin{table}
+  \centering
+  \caption{Result: \textcolor{green}{\bf Passed} (minimum: 80.0\%, actual: 100.0\%)}
+  \begin{tabular}{lllll}
+    \hline
+    \bf Name                        & \bf Total & \bf Miss & \bf Cover & \bf Cover                 \\
+    \hline
+    main.py                         & 2         & 0        & 2         & \textcolor{green}{100 \%} \\
+    tasks.py                        & 8         & 0        & 8         & \textcolor{green}{100 \%} \\
+    docs/conf.py                    & 1         & 0        & 1         & \textcolor{green}{100 \%} \\
+    melon/\_\_init\_\_.py           & 1         & 0        & 1         & \textcolor{green}{100 \%} \\
+    melon/calendar.py               & 11        & 0        & 11        & \textcolor{green}{100 \%} \\
+    melon/config.py                 & 1         & 0        & 1         & \textcolor{green}{100 \%} \\
+    melon/melon.py                  & 19        & 0        & 19        & \textcolor{green}{100 \%} \\
+    melon/todo.py                   & 20        & 0        & 20        & \textcolor{green}{100 \%} \\
+    melon/visualise.py              & 3         & 0        & 3         & \textcolor{green}{100 \%} \\
+    melon/scheduler/\_\_init\_\_.py & 1         & 0        & 1         & \textcolor{green}{100 \%} \\
+    melon/scheduler/base.py         & 10        & 0        & 10        & \textcolor{green}{100 \%} \\
+    melon/scheduler/cpp.py          & 3         & 0        & 3         & \textcolor{green}{100 \%} \\
+    melon/scheduler/numba.py        & 8         & 0        & 8         & \textcolor{green}{100 \%} \\
+    melon/scheduler/purepython.py   & 12        & 0        & 12        & \textcolor{green}{100 \%} \\
+    melon/scheduler/rust.py         & 3         & 0        & 3         & \textcolor{green}{100 \%} \\
+    melongui/\_\_init\_\_.py        & 1         & 0        & 1         & \textcolor{green}{100 \%} \\
+    melongui/calendarlist.py        & 6         & 0        & 6         & \textcolor{green}{100 \%} \\
+    melongui/mainwindow.py          & 14        & 0        & 14        & \textcolor{green}{100 \%} \\
+    melongui/taskitemdelegate.py    & 12        & 0        & 12        & \textcolor{green}{100 \%} \\
+    melongui/tasklist.py            & 14        & 0        & 14        & \textcolor{green}{100 \%} \\
+    melongui/taskwidgets.py         & 8         & 0        & 8         & \textcolor{green}{100 \%} \\
+    tests/\_\_init\_\_.py           & 1         & 0        & 1         & \textcolor{green}{100 \%} \\
+    tests/test\_melon.py            & 7         & 0        & 7         & \textcolor{green}{100 \%} \\
+    tests/test\_scheduler.py        & 9         & 0        & 9         & \textcolor{green}{100 \%} \\
+    \hline
+    \bf TOTAL                       & 175       & 0        & 175       & \textcolor{green}{100 \%} \\
+    \hline
+  \end{tabular}
+  \label{table:interrogate}
+\end{table}
+
+\paragraph{Documentation} is important to make the purpose and usage of the code package clear. This project uses \texttt{sphinx} to generate documentation in PDF format which one may find at the end of this report. To generate the documentation, run \bash{inv build-docs}.
+
+\paragraph{Dependency Management} in this project is done using \texttt{poetry}, which not only manages install packages and manages virtual environments, but also keeps track of dependency groups.
+To install all direct dependencies, run \bash{poetry install}.
+
+\paragraph{Type Checking} is done with \texttt{pyright} instead of \texttt{mypy} as it is much faster and analyses the entire project at once. This tool detects when, for instance, attempting to call a non-existent method on an object, or passing the wrong type to a function call, etc.
+The \textit{Melon} code therefore contains numerous type hints.
+To verify all type hints, run \bash{pyright .} in the root folder of the project.
+
+\paragraph{Using Appropriate Language Features}
+Tools such as \texttt{autoflake} and \texttt{pyupgrade} automatically correct unused imports or deprecated code usage.
+\texttt{ruff} is a highly performant linter written in Rust, that not only warns the programmer on common mistakes, but can also perform small fixes to the structure of the code such as import reordering.
+\texttt{nitpick} is a tool to synchronise linter configuration across projects.
+
+\subsection{Tests and Coverage}
+Software testing is a vital part of any programming endeavour to ensure high levels of overally code quality.
+This submission only contains tests for the \texttt{melon} package of the code, not for the \gls{gui}, which will be subject to future efforts.
+There are 34 tests provided along with the code.
+
+In order to simulate the interaction with a \gls{caldav} server, we provide a tool to start a mock server using Docker, a containerisation engine that abstracts code execution to individual entities called containers.
+To start a the \texttt{xandikos} mock server, please run
+
+\bashblock{inv start-mock-server}
+
+Once the server is running, the tests may be run simply by:
+
+\bashblock{pytest}
+
+As we can see using \bash{pytest ----durations=0},
+
+\texttt{
+  ========================= slowest durations ========================= \\
+  3.53s call TestScheduler::test\_length[NumbaMCMCScheduler] \\
+  0.19s call TestMelon::test\_init\_store\_and\_load
+}
+
+the slowest test is the first routine involving the Numba scheduler which takes some time to pre-compile the functions.
+So even when the runtime of the Numba scheduler itself is low (cf. \Cref{sec:runtime}), the test will always take some extra time.
+
+\subsubsection{Code Coverage}
+\begin{table}[H]
+  \centering
+  \caption{Test coverage of the \texttt{melon} package: platform linux, python 3.11.4-final-0. This table may be reproduced using \bash{pytest ----cov=melon}.}
+  \begin{tabular}{lrrr}
+    \hline
+    \bf Name                        & \bf Statements & \bf Miss & \bf Cover                    \\
+    \hline
+    melon/\_\_init\_\_.py           & 0              & 0        & \textcolor{green}{100 \%}    \\
+    melon/calendar.py               & 57             & 5        & \textcolor{green}{91 \%}     \\
+    melon/config.py                 & 12             & 0        & \textcolor{green}{100 \%}    \\
+    melon/melon.py                  & 121            & 8        & \textcolor{green}{93 \%}     \\
+    melon/scheduler/\_\_init\_\_.py & 0              & 0        & \textcolor{green}{100 \%}    \\
+    melon/scheduler/base.py         & 40             & 3        & \textcolor{green}{92 \%}     \\
+    melon/scheduler/cpp.py          & 18             & 5        & \textcolor{green}{72 \%}     \\
+    melon/scheduler/purepython.py   & 83             & 0        & \textcolor{green}{100 \%}    \\
+    melon/scheduler/rust.py         & 18             & 5        & \textcolor{green}{72 \%}     \\
+    melon/todo.py                   & 101            & 17       & \textcolor{green}{83 \%}     \\
+    melon/visualise.py              & 42             & 2        & \textcolor{green}{95 \%}     \\
+    \hline
+    \bf TOTAL                       & \bf 492        & \bf 45   & \bf \textcolor{green}{91 \%}
+  \end{tabular}
+\end{table}
+
+\paragraph{Maintaining Code Quality}
+\texttt{pre-commit} is a tool that can install a git hook to the code repository, which automatically runs a set of checks before every commit, hence the name.
+For this project, various checks listed below are employed, being run before each and every commit to keep code quality high throughout the entire development process.
+
+\texttt{
+  \hspace*{-1em} prettier........................................................\textcolor{green}{Passed} \\
+  fix end of files................................................\textcolor{green}{Passed} \\
+  trim trailing whitespace........................................\textcolor{green}{Passed} \\
+  black...........................................................\textcolor{green}{Passed} \\
+  ruff............................................................\textcolor{green}{Passed} \\
+  check blanket noqa..............................................\textcolor{green}{Passed} \\
+  check for eval()................................................\textcolor{green}{Passed} \\
+  interrogate.....................................................\textcolor{green}{Passed} \\
+  autoflake.......................................................\textcolor{green}{Passed} \\
+  pyupgrade.......................................................\textcolor{green}{Passed} \\
+  pyright.........................................................\textcolor{green}{Passed} \\
+  pytest-check....................................................\textcolor{green}{Passed} \\
+  clang-format....................................................\textcolor{green}{Passed} \\
+  latex-format-all................................................\textcolor{green}{Passed}
+}
+
+A similar, more team-friendly option is to use GitHub Actions \gls{ci} / \gls{cd}, or simply CI/CD.
+
+\paragraph{Publishing to PyPi}
+As highlighted above, the project can be installed from \href{https://pypi.org/project/melon-scheduler/}{this PyPi repository}.
+In order to build and publish the project, one can simply run
+
+\bashblock{poetry publish --build}
+
+Although it would be possible to compile the C++ and Rust implementations on a CI service using a ``platform matrix'', the published package only contains compilation targets for the x86\_64 platform and Python 3.11.
+
+All the tools described above will be installed automatically using
+
+\bashblock{poetry install --with=dev}.
