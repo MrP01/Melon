@@ -1,10 +1,11 @@
 \section{Code Quality Measures}
-Writing good code is an art, but there are a few concepts, principles and tools to approach the problem from a more standardised, scientific perspective.
+Writing good code is an art, but there are a few concepts, principles and tools to approach the problem using a standardised approach.
 Some of these are:
 
 \paragraph{Formatting} the \textit{Melon} code is done by the \texttt{black} software package. Configuration thereof, as well as that for most other tools, can be found in the \texttt{pyproject.toml} file. To format all Python code, run \bash{black .} which will recursively explore the entire folder. The C++ code is formatted using \texttt{clang-format} while the Rust code is formatted using \texttt{rustfmt}.
 
 \paragraph{Docstrings} help us document the code, \textit{within} the code. Every class, method and function in the project, including \texttt{melon}, \texttt{melongui}, the \texttt{tasks} and the \texttt{tests}, has a docstring.
+These follow a specific format in order for Sphinx to be able to pick up arguments, exceptions raised and return values as well as their associated types.
 This coverage can be verified using \bash{interrogate -vv}, cf. \Cref{table:interrogate}.
 
 \begin{table}
@@ -45,7 +46,7 @@ This coverage can be verified using \bash{interrogate -vv}, cf. \Cref{table:inte
   \label{table:interrogate}
 \end{table}
 
-\paragraph{Documentation} is important to make the purpose and usage of the code package clear. This project uses \texttt{sphinx} to generate documentation in PDF format which one may find at the end of this report. To generate the documentation, run \bash{inv build-docs}.
+\paragraph{Documentation} is important to make the purpose and usage of the code package clear. This project uses \texttt{sphinx} to generate documentation in PDF format which one may find at the end of this report. To generate it, run \bash{inv build-docs}.
 
 \paragraph{Dependency Management} in this project is done using \texttt{poetry}, which not only manages install packages and manages virtual environments, but also keeps track of dependency groups.
 To install all direct dependencies, run \bash{poetry install}.
@@ -137,6 +138,9 @@ For this project, various checks listed below are employed, being run before eac
 
 A similar, more team-friendly option is to use GitHub Actions \gls{ci} / \gls{cd}, or simply CI/CD.
 
+All the tools described above will be installed automatically using \\
+\bashblock{poetry install ----with=dev}.
+
 \paragraph{Publishing to PyPi}
 As highlighted above, the project can be installed from \href{https://pypi.org/project/melon-scheduler/}{this PyPi repository}.
 In order to build and publish the project, one can simply run
@@ -144,7 +148,3 @@ In order to build and publish the project, one can simply run
 \bashblock{poetry publish ----build}
 
 Although it would be possible to compile the C++ and Rust implementations on a CI service using a ``platform matrix'', the published package only contains compilation targets for the x86\_64 platform and Python 3.11.
-
-All the tools described above will be installed automatically using
-
-\bashblock{poetry install ----with=dev}.

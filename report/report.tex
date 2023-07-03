@@ -93,7 +93,7 @@
 
   \begin{table}[H]
     \centering
-    \caption{Profile obtained by running \mintinline{bash}{./main.py --profile | grep todo.py}.}
+    \caption{Profile obtained by running \bash{./main.py ----profile | grep todo.py}.}
     \begin{tabular}{rrrrrll}
       \hline
       ncalls & tottime & percall & cumtime & percall & filename:lineno & function     \\
@@ -111,6 +111,9 @@
     \end{tabular}
     \label{table:paint-profile}
   \end{table}
+
+  \section{Sphinx Documentation}
+  As mentioned above, this report also contains the documentation generated from the docstrings. It starts on the next page.
 
   \includepdf[pages=7-29]{../build/docs/latex/melon.pdf}
 \end{document}

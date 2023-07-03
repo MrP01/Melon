@@ -5,39 +5,61 @@ This project uses one of the latest versions of Python, 3.11.4.
 After running \bash{pip install melon-scheduler[gui]} and starting a Python console, the following code snippet should start the \gls{gui}:
 
 \begin{minted}{python}
-    from melongui.main import main
-    main()  # to start the GUI
-  \end{minted}
+  from melongui.main import main
+  main()  # to start the GUI
+\end{minted}
 
 which launches a User Interface such as the one depicted in \Cref{fig:gui}.
 
-To load todos from a remote calendar, as specified in the configuration file, and schedule them, use the following code-snippet:
-\begin{minted}{python}
-    from melon.melon import Melon
-    from melon.scheduler.rust import RustyMCMCScheduler
+Creation of and interaction with \texttt{Todo}s in the calendar can be simple:
 
-    melon = Melon()
-    melon.autoInit()
-    melon.scheduleAllAndExport("task-schedule.ics", Scheduler=RustyMCMCScheduler)
-  \end{minted}
+\begin{minted}{python}
+  from melon.melon import Melon
+
+  melon = Melon()  # loads the config and initialises
+  melon.autoInit()  # initiates a network connection to the server
+  matches = list(melon.findTask("Submit report"))
+  matches[0].complete()  # marks the todo as complete and syncs
+
+  calendar = melon.calendars["My Calendar"]
+  calendar.sync()  # fetches updates from the server
+  todo = calendar.createTodo("New Todo")
+  todo.dueDate = datetime.date.today()
+  todo.save()  # saves the todo to the server
+\end{minted}
+
+To load todos from a remote calendar, as specified in the configuration file, and schedule them, use the following code snippet:
+\begin{minted}{python}
+  from melon.melon import Melon
+  from melon.scheduler.rust import RustyMCMCScheduler
+
+  melon = Melon()
+  melon.autoInit()
+  melon.scheduleAllAndExport("task-schedule.ics", Scheduler=RustyMCMCScheduler)
+\end{minted}
+
+This will create an iCalendar file \texttt{task-schedule.ics} containing an event for each time slot allocated to the completion of a task in the todo list.
+These can be displayed in a regular calendar application and the output might look like according to \Cref{fig:calendar}.
 
 In order to run the scheduler on demonstration data, please run
 \begin{minted}{python}
-    from melon.scheduler.rust import RustyMCMCScheduler
+  from melon.scheduler.rust import RustyMCMCScheduler
 
-    tasks = generateManyDemoTasks(N=80)
-    scheduler = RustyMCMCScheduler(tasks)
-    result = scheduler.schedule()
-  \end{minted}
+  tasks = generateManyDemoTasks(N=80)
+  scheduler = RustyMCMCScheduler(tasks)
+  result = scheduler.schedule()
+\end{minted}
+
+There are many more usage examples available in the \texttt{tests}.
 
 If not specified in the initialiser, Melon loads a configuration file located in the user's home configuration directory, so on Linux \texttt{\~/.config/melon/config.toml}.
 The file uses \gls{toml} format and has the following contents:
 \begin{minted}{toml}
-[client]
-url = "https://my-caldav-server.org:2023/dav/user/calendars/"
-username = "user"
-password = "password"
-  \end{minted}
+  [client]
+  url = "https://my-caldav-server.org:2023/dav/user/calendars/"
+  username = "user"
+  password = "password"
+\end{minted}
 
 \subsection{Full Project Usage}
 The ZIP file contains a number of configuration files at the top level, the two main code folders \texttt{melon} and \texttt{melongui}, \texttt{tests}, \texttt{docs} and the \texttt{report}.
