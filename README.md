@@ -3,6 +3,46 @@
 A CalDav Todo-List (/ Task-Scheduling) Application that uses Markov chain Monte-Carlo to optimise a task schedule.
 It also features a User Interface written with Qt6.
 
+To start the GUI:
+
+```python
+from melongui.main import main
+main() # to start the GUI
+```
+
+which launches a User Interface such as the one depicted in Figure 1.
+To load todos from a remote calendar, as specified in the configuration file, and
+schedule them, use the following code-snippet:
+
+```python
+from melon.melon import Melon
+from melon.scheduler.rust import RustyMCMCScheduler
+melon = Melon()
+melon.autoInit()
+melon.scheduleAllAndExport("task-schedule.ics", Scheduler=RustyMCMCScheduler)
+```
+
+In order to run the scheduler on demonstration data, please run
+
+```python
+from melon.scheduler.rust import RustyMCMCScheduler
+tasks = generateManyDemoTasks(N=80)
+scheduler = RustyMCMCScheduler(tasks)
+result = scheduler.schedule()
+```
+
+If not specified in the initialiser, Melon loads a configuration file located in the user’s
+home configuration directory, so on Linux `~/.config/melon/config.toml`. The
+file uses Tom’s Obvious, Minimal Language (TOML) format and has the following
+contents:
+
+```toml
+[client]
+url = "https://my-caldav-server.org:2023/dav/user/calendars/"
+username = "user"
+password = "password"
+```
+
 Melon is a Python package on a Markov chain Monte-Carlo (MCMC), using Metropolis-Hastings with Simulated Annealing, optimisation of task scheduling.
 The idea would be to automatically schedule a set of tasks into a calendar based on due date, duration estimate (perhaps dynamically updated), task priority, associated project affiliation and most importantly, location.
 State permutations would be generated randomly according to a probability distribution, starting from a good initial guess of ordering tasks by due date and priority.
