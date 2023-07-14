@@ -72,7 +72,7 @@ def start_mock_server(ctx: Context):
     ctx.run("mkdir -p /tmp/xandikosdata")
     ctx.sudo(
         "docker run -v /tmp/xandikosdata:/data -p 8000:8000 --detach ghcr.io/jelmer/xandikos "
-        "--route-prefix=/dav --current-user-principal=/user",
+        "--route-prefix=/dav --current-user-principal=/user --autocreate",
         warn=True,
     )
     time.sleep(1.0)
