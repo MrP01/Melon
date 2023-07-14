@@ -5,6 +5,7 @@ function names as opposed to snake_case names.
 import collections
 import cProfile
 import logging
+import os
 import pathlib
 import pstats
 import shutil
@@ -69,13 +70,21 @@ def start_mock_server(ctx: Context):
     Args:
         ctx (Context): Invoke Execution Context
     """
+    print("Hello! Starting the mock server can be a rather delicate operation.")
+    print("This script will try to walk you through.")
     ctx.run("mkdir -p /tmp/xandikosdata")
+    print("Created the data directory in /tmp/.")
+    ctx.run("ls -la /tmp/xandikosdata")
+    print("Please do make sure that its user permission is set to UID 1000 (usually, your own user).")
+    if os.stat("/tmp/xandikosdata/").st_uid != 1000:
+        print("The directory should be owned by UID 1000. Please try again with that user.")
+        return
     ctx.sudo(
         "docker run -v /tmp/xandikosdata:/data -p 8000:8000 --detach ghcr.io/jelmer/xandikos "
         "--route-prefix=/dav --current-user-principal=/user --autocreate",
         warn=True,
     )
-    time.sleep(1.0)
+    time.sleep(3.0)
     response = requests.get("http://localhost:8000/")
     print("Server reachable:", response.ok)
     melon = Melon(url="http://localhost:8000/dav/user/calendars/")
