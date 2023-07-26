@@ -90,6 +90,7 @@ class TestMelon:
         allTasks = list(melon.allTasks())
         if not allTasks:
             self.create_todos(melon)
+        allTasks = list(melon.allTasks())
         match = re.search(r"\b\w+\b", random.choice(allTasks).summary)
         keyword = match.group(0) if match else "Darkness"
         matches = list(melon.findTask(keyword))
