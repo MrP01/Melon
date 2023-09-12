@@ -11,11 +11,11 @@ include = ["melon/scheduler/libscheduler.so", "melon/scheduler/libcppscheduler.s
 python = "^3.10, <3.12"
 caldav = "^1.3.6"
 dateparser = "^1.1.8"
-tqdm = "^4.65.0"
+tqdm = "^4.66.1"
 tomli = { version = "^2.0.1", python = "<3.11" }
 pyside6 = { version = "^6.5.2", optional = true }
 numba = { version = "^0.57.1", optional = true }
-matplotlib = { version = "^3.7.2", optional = true }
+matplotlib = { version = "^3.7.3", optional = true }
 
 [tool.poetry.extras]
 gui = ["pyside6"]
@@ -26,11 +26,11 @@ plots = ["matplotlib"]
 dill = "^0.3.7"
 interrogate = "^1.5.0"
 invoke = "^2.2.0"
-ipython = "^8.14.0"
-pytest = "^7.4.0"
+ipython = "^8.15.0"
+pytest = "^7.4.2"
 pytest-cov = "^4.1.0"
 recommonmark = "^0.7.1"
-sphinx = "^7.1.0"
+sphinx = "^7.2.5"
 
 [tool.black]
 line-length = 120
