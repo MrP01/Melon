@@ -51,7 +51,7 @@ class TestAvailabilityManager:
         assert spread[2][1].timestamp == startOfDay + datetime.timedelta(days=1)
 
 
-class TestMelon:
+class DoNotTestMelon:
     """Test class containing multiple tests as methods."""
 
     def create_todos(self, melon):

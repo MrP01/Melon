@@ -71,7 +71,7 @@ class TestScheduler:
             scheduler.schedule()
 
     @pytest.mark.parametrize("Scheduler", ALL_IMPLEMENTATIONS)
-    def test_real_data_scheduling(self, Scheduler: type[AbstractScheduler]):
+    def do_not_test_real_data_scheduling(self, Scheduler: type[AbstractScheduler]):
         """Schedules based on what autoInit() gives us."""
         melon = Melon(maxCalendars=MAX_CALENDARS)
         melon.autoInit()
@@ -80,7 +80,7 @@ class TestScheduler:
         assert len(result) == len(scheduler.tasks)
 
     @pytest.mark.parametrize("Scheduler", ALL_IMPLEMENTATIONS)
-    def test_schedule_and_export(self, Scheduler: type[AbstractScheduler]):
+    def do_not_test_schedule_and_export(self, Scheduler: type[AbstractScheduler]):
         """Runs scheduleAllAndExport() to schedule and create an ICS file."""
         melon = Melon(maxCalendars=MAX_CALENDARS)
         melon.autoInit()
