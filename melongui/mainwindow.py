@@ -1,7 +1,7 @@
 """This submodule defines the main window of our application."""
 from PySide6 import QtWidgets
-from PySide6.QtCore import Qt, QThreadPool
-from PySide6.QtGui import QCloseEvent, QKeyEvent
+from PySide6.QtCore import Qt, QThreadPool, Slot
+from PySide6.QtGui import QCloseEvent, QIcon, QKeyEvent
 
 from melon.melon import Melon
 from melon.todo import Todo
@@ -72,6 +72,26 @@ class MainWindow(QtWidgets.QWidget):
         layout.addWidget(self.tasklistView, 1, 2)
         self.setLayout(layout)
 
+        self.sysTrayIcon = QtWidgets.QSystemTrayIcon(QIcon.fromTheme("edit-select-all"))
+        menu = QtWidgets.QMenu()
+        menu.addAction("Quit Melon", self.quit)
+        self.sysTrayIcon.setContextMenu(menu)
+        self.sysTrayIcon.activated.connect(self.toggleOpenClosed)
+        self.sysTrayIcon.show()
+
+    @Slot(QtWidgets.QSystemTrayIcon.ActivationReason)
+    def toggleOpenClosed(self, reason):
+        """If the window is open, close it. And vice-versa.
+
+        Args:
+            reason (QtWidgets.QSystemTrayIcon.ActivationReason): Reason
+        """
+        if reason == QtWidgets.QSystemTrayIcon.ActivationReason.Trigger:
+            if self.isHidden():
+                self.show()
+            else:
+                self.hide()
+
     def start(self):
         """
         Args:
@@ -95,10 +115,14 @@ class MainWindow(QtWidgets.QWidget):
         """
         Args:
             event (QCloseEvent): Argument
-
         """
+        event.ignore()
+        self.hide()
         self.melon.store()
-        return super().closeEvent(event)
+
+    def quit(self):
+        """Quits the entire application."""
+        QtWidgets.QApplication.quit()
 
     def calendarListClicked(self, item: QtWidgets.QListWidgetItem):
         """
