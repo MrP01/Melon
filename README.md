@@ -77,3 +77,15 @@ An extension would be for the scheduler to learn about task properties based on 
 As performance might become an issue for MCMC, we will attempt the use of low-level languages such as C++ in combination with tools such as pybind11, to outsource short performance-critical code sections away from Python to another language?
 
 The task check icon is the logo of the \textit{Tasks.org} Free and Open Source Android App, which may be found [here](https://github.com/tasks/tasks/tree/main/graphics).
+
+## Troubleshooting
+
+If you stumble accross
+
+`This application failed to start because no Qt platform plugin could be initialized. Reinstalling the application may fix this problem.`
+
+make sure to install `libxcb-cursor0`:
+
+```bash
+sudo apt install libxcb-cursor0
+```
