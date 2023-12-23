@@ -5,7 +5,6 @@ import random
 import tempfile
 from typing import Mapping
 
-import numpy as np
 import pytest
 
 from melon.melon import Melon
@@ -90,6 +89,8 @@ class TestScheduler:
     @pytest.mark.filterwarnings("ignore:Enum:DeprecationWarning")
     def test_purepython_convergence_plot(self):
         """Plots the MCMC convergence."""
+        import numpy as np
+
         scheduler = MCMCScheduler(generateDemoTasks())
         scheduler.schedule()
         plotConvergence(np.array([scheduler.energyLog]), ["label"], filename=None)
