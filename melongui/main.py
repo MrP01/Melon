@@ -1,3 +1,4 @@
+import signal
 import sys
 
 from PySide6 import QtWidgets
@@ -10,6 +11,7 @@ def main():
     """Starts the Graphical User Interface"""
     app = QtWidgets.QApplication(sys.argv)
     app.setApplicationName("Melon")
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
     window = MainWindow()
     window.buildUI()
     window.start()

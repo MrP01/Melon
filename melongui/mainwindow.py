@@ -143,6 +143,8 @@ class MainWindow(QtWidgets.QWidget):
         if event.modifiers() == Qt.KeyboardModifier.ControlModifier:
             if event.key() == Qt.Key.Key_W:
                 self.close()
+            elif event.key() == Qt.Key.Key_Q:
+                self.quit()
             elif event.key() == Qt.Key.Key_S:
                 self.sync()
             elif event.key() == Qt.Key.Key_H:

@@ -21,7 +21,7 @@ class LargerListViewDelegate(QtWidgets.QItemDelegate):
         Returns:
             (QSize):
         """
-        return QSize(100, 27)
+        return QSize(100, 32)
 
 
 class CalendarListView(QtWidgets.QListWidget):
@@ -32,13 +32,16 @@ class CalendarListView(QtWidgets.QListWidget):
         Args:
             parent (Union[QWidget, None], optional): Argument
                 (default is None)
-
         """
         super().__init__(parent)
         self.setItemDelegate(LargerListViewDelegate())
         policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Expanding)
         policy.setHorizontalStretch(2)
         self.setSizePolicy(policy)
+
+        font = self.font()
+        font.setPointSize(16)
+        self.setFont(font)
 
         homeItem = QtWidgets.QListWidgetItem(QIcon.fromTheme("go-home"), "All Tasks")
         homeItem.setData(Qt.ItemDataRole.UserRole, {"is-special": True, "specialty": "all"})
