@@ -4,11 +4,12 @@ import re
 
 import dateparser.search
 from PySide6 import QtWidgets
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QPoint, Qt
 from PySide6.QtGui import QIcon, QKeyEvent, QMouseEvent
 
 from melon.melon import Melon
 from melon.todo import Todo
+from melongui.contextmenu import TaskContextMenu
 
 from .taskitemdelegate import TaskItemDelegate
 from .taskwidgets import OrderableTaskItem, TaskOverlayWidget, UserRole
@@ -33,6 +34,18 @@ class TaskListView(QtWidgets.QListWidget):
         self.itemChanged.connect(self.onItemChange)
         self._currentCalendarName = None
         self.addAddButton()
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.openContextMenu)
+
+    def openContextMenu(self, point: QPoint):
+        item = self.itemAt(point)
+        todo: Todo = item.data(UserRole)
+        menu = TaskContextMenu(todo)
+        menu.buildUI()
+        # menu.dueDateChanged.connect(self.update)
+        position = self.mapToGlobal(point)
+        position.setX(position.x() - 200)
+        menu.exec(position)
 
     def mouseDoubleClickEvent(self, event: QMouseEvent) -> None:
         """Handles mouse double click

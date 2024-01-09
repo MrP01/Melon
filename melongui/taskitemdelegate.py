@@ -56,7 +56,8 @@ class TaskItemEditorFactory(QtWidgets.QItemEditorFactory):
         def actualHandler():
             """I am called to perform the actual parsing."""
             text = edit.text()
-            results = dateparser.search.search_dates(text)
+            results = dateparser.search.search_dates(text, languages=("en", "de"))
+            print(results)
             if results:
                 token, stamp = results[0]
                 label.setText(stamp.strftime("%d.%m.%Y"))
@@ -65,7 +66,7 @@ class TaskItemEditorFactory(QtWidgets.QItemEditorFactory):
 
         timer = QTimer()
         timer.setSingleShot(True)
-        timer.setInterval(800)
+        timer.setInterval(100)
         timer.timeout.connect(lambda: self.threadPool.start(actualHandler))
 
         def handler():
