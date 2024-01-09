@@ -65,11 +65,14 @@ class MainWindow(QtWidgets.QWidget):
         self.messageLabel.setHidden(True)
         self.messageLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
+        splitter = QtWidgets.QSplitter()
+        splitter.addWidget(self.calendarlistView)
+        splitter.addWidget(self.tasklistView)
+
         layout = QtWidgets.QGridLayout(self)
-        layout.addWidget(self.messageLabel, 0, 1, 1, 2)
+        layout.addWidget(self.messageLabel, 0, 0)
         # layout.addWidget(self.searchWidget, 0, 1, 1, 2)
-        layout.addWidget(self.calendarlistView, 1, 1)
-        layout.addWidget(self.tasklistView, 1, 2)
+        layout.addWidget(splitter, 1, 0)
         self.setLayout(layout)
 
         self.sysTrayIcon = QtWidgets.QSystemTrayIcon(QIcon.fromTheme("edit-select-all"))

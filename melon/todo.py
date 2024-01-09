@@ -203,9 +203,9 @@ class Todo(caldav.Todo):
             bool: whether self < other
         """
         if self.summary == NEW_TASK_TEXT:
-            return False
-        if other.summary == NEW_TASK_TEXT:
             return True
+        if other.summary == NEW_TASK_TEXT:
+            return False
         if self.dueDate is None and other.dueDate is not None:
             return False
         if other.dueDate is None and self.dueDate is not None:

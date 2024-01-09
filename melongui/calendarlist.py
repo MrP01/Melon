@@ -35,12 +35,15 @@ class CalendarListView(QtWidgets.QListWidget):
         """
         super().__init__(parent)
         self.setItemDelegate(LargerListViewDelegate())
-        policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Expanding)
+        policy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Maximum,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+        )
         policy.setHorizontalStretch(2)
         self.setSizePolicy(policy)
 
         font = self.font()
-        font.setPointSize(15)
+        font.setPointSize(14)
         self.setFont(font)
 
         homeItem = QtWidgets.QListWidgetItem(QIcon.fromTheme("go-home"), "All Tasks")

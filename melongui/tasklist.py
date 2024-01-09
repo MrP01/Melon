@@ -134,17 +134,17 @@ class TaskListView(QtWidgets.QListWidget):
             raise ValueError("The item's associated todo does not have a calendar.")
 
         text = item.text()
-        if "clear" in text:
-            todo.dueDate = None
-            text = text.replace("clear", "")
-        else:
-            extractedDateTime = dateparser.search.search_dates(text)
-            if extractedDateTime:
-                token, stamp = extractedDateTime[0]
-                if re.search(r"\d", token):
-                    todo.dueDate = stamp
-                else:
-                    todo.dueDate = stamp.date()
+        # if "clear" in text:
+        #     todo.dueDate = None
+        #     text = text.replace("clear", "")
+        # else:
+        #     extractedDateTime = dateparser.search.search_dates(text)
+        #     if extractedDateTime:
+        #         token, stamp = extractedDateTime[0]
+        #         if re.search(r"\d", token):
+        #             todo.dueDate = stamp
+        #         else:
+        #             todo.dueDate = stamp.date()
         todo.summary = text.strip()
         todo.save()
         logging.info("... saved!")

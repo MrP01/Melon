@@ -38,7 +38,7 @@ class TaskItemEditorFactory(QtWidgets.QItemEditorFactory):
         label.setFixedWidth(245)
         label.move(parent.width() - 250, 22)
         label.setAlignment(Qt.AlignmentFlag.AlignRight)
-        edit.textChanged.connect(self.textChangeHandler(edit, label))
+        # edit.textChanged.connect(self.textChangeHandler(edit, label))
         return edit
 
     def textChangeHandler(self, edit: QtWidgets.QLineEdit, label: QtWidgets.QLabel) -> Callable:
