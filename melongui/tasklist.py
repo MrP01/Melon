@@ -29,7 +29,8 @@ class TaskListView(QtWidgets.QListWidget):
         delegate = TaskItemDelegate(self)
         self.setItemDelegate(delegate)
         delegate.editorDestroyed.connect(self.delegateEditorDestroyed)
-        self.setDragEnabled(True)
+        self.setDragDropMode(QtWidgets.QAbstractItemView.DragDropMode.DragDrop)
+        self.setAcceptDrops(True)
         self.setVerticalScrollMode(QtWidgets.QListWidget.ScrollMode.ScrollPerPixel)
         self.itemChanged.connect(self.onItemChange)
         self._currentCalendarName = None
@@ -154,9 +155,10 @@ class TaskListView(QtWidgets.QListWidget):
     def addEmptyTask(self):
         """Add an empty task to the bottom for editing and saving later."""
         if self._currentCalendarName is None:
-            logging.warning("Please select a calendar first!")
-            return
-        calendar = self.melon.calendars[self._currentCalendarName]
+            logging.warning("Using Inbox as calendar name because you specified none.")
+            calendar = self.melon.calendars["Inbox"]
+        else:
+            calendar = self.melon.calendars[self._currentCalendarName]
         todo = calendar.createTodo()
         item = self.addTask(todo)
         self.sortItems()

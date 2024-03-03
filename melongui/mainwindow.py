@@ -64,6 +64,7 @@ class MainWindow(QtWidgets.QWidget):
         self.messageLabel = QtWidgets.QLabel(self)
         self.messageLabel.setHidden(True)
         self.messageLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.messageLabel.setMaximumHeight(32)
 
         splitter = QtWidgets.QSplitter()
         splitter.addWidget(self.calendarlistView)
