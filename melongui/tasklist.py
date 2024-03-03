@@ -1,8 +1,7 @@
 """This module defines the task list view widget."""
-import logging
-import re
 
-import dateparser.search
+import logging
+
 from PySide6 import QtWidgets
 from PySide6.QtCore import QPoint, Qt
 from PySide6.QtGui import QIcon, QKeyEvent, QMouseEvent

@@ -1,4 +1,5 @@
 """The scheduler algorithm"""
+
 import logging
 import math
 import random

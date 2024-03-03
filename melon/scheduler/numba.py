@@ -1,4 +1,5 @@
 """Numba implementation of the scheduler algorithm."""
+
 import math
 import random
 from datetime import date, datetime, timedelta

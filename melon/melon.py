@@ -4,6 +4,7 @@ the main point of contact for users of this package. It can be initialised like 
 melon = Melon()
 melon.autoInit()
 """
+
 import datetime
 import json
 import logging

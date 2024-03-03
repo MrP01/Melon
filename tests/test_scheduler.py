@@ -1,4 +1,5 @@
 """Tests for the scheduler algorithm."""
+
 import datetime
 import pathlib
 import random

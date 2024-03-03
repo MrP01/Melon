@@ -1,4 +1,5 @@
 """Tests for the Melon object."""
+
 import datetime
 import os
 import random

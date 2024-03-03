@@ -1,4 +1,5 @@
 """In this submodule, we define the calendar list widget (on the left)."""
+
 from typing import Iterable
 
 from PySide6 import QtWidgets

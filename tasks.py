@@ -2,6 +2,7 @@
 We do not use the CamelCase naming convention for methods in this file because invoke does not recognise CamelCase
 function names as opposed to snake_case names.
 """
+
 import collections
 import cProfile
 import logging

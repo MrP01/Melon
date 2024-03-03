@@ -1,4 +1,5 @@
 """This module contains the Todo class."""
+
 import datetime
 import logging
 import re

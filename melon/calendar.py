@@ -1,4 +1,5 @@
 """This module contains the Calendar class."""
+
 import logging
 from typing import Iterable
 

@@ -1,4 +1,5 @@
 """This module defines how tasks should be rendered in the GUI."""
+
 import datetime
 from typing import Callable
 

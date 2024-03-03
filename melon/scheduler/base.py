@@ -1,4 +1,5 @@
 """The scheduler algorithm"""
+
 import dataclasses
 import random
 from datetime import datetime, time, timedelta

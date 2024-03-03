@@ -1,4 +1,5 @@
 """A collection of (quality measure) visualisation helpers."""
+
 from typing import Sequence
 
 import matplotlib.axes

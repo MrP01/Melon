@@ -1,4 +1,5 @@
 """A collection of widgets and classes for the definition of task display in the UI."""
+
 import pathlib
 
 from PySide6 import QtWidgets
